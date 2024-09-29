@@ -1,0 +1,16 @@
+/*.js
+**/*.html
+
+node_modules
+build
+temp
+dist
+
+test/manual/mocks
+test/outputs
+
+translation.missing.json
+
+service-account.json
+
+.docker
