@@ -19,4 +19,4 @@ RUN chown -R nodejs:nodegrp /usr/app
 
 USER nodejs
 RUN yarn install --frozen-lockfile --production
-CMD ["node", "index.mjs"]
+ENTRYPOINT ["node", "index.js"]
