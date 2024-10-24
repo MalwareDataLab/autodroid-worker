@@ -27,6 +27,12 @@ const argv = yargs(hideBin(process.argv))
     default: false,
     description: "Enable debug mode",
   })
+  .option("url", {
+    type: "string",
+    alias: "u",
+    default: "https://autodroid-api.laviola.dev",
+    description: "The server URL",
+  })
   .option("set", {
     type: "array",
     alias: "s",

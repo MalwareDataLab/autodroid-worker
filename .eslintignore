@@ -1,3 +1,10 @@
+/*
+!src/
+!src/**
+*.js
+node_modules
+dist
+
 /*.js
 **/*.html
 
