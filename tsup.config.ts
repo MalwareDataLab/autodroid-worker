@@ -8,4 +8,9 @@ export default defineConfig(options => ({
   sourcemap: true,
   clean: true,
   minify: false,
+
+  // https://github.com/egoist/tsup/issues/619
+  target: 'node16',
+  platform: 'node',
+  noExternal: [ /(.*)/ ],
 }));
