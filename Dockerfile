@@ -14,8 +14,9 @@ RUN addgroup -g 1001 -S nodegrp
 RUN adduser -S nodejs -u 1001
 
 COPY --from=build /usr/app/dist ./
+COPY --from=build /usr/app/package.json /usr/app/yarn.lock ./
 RUN chown -R nodejs:nodegrp /usr/app
 
 USER nodejs
 RUN yarn install --frozen-lockfile --production
-ENTRYPOINT ["node", "index.mjs"]
+CMD ["node", "index.mjs"]
