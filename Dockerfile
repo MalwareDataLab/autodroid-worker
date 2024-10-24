@@ -17,5 +17,5 @@ COPY --from=build /usr/app/dist ./
 RUN chown -R nodejs:nodegrp /usr/app
 
 USER nodejs
-#RUN yarn install --frozen-lockfile --production
+RUN yarn install --frozen-lockfile --production
 ENTRYPOINT ["node", "index.js"]
