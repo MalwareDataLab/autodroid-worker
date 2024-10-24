@@ -18,7 +18,7 @@ export const getStorageBasePath = (dir: string) => {
     case "development":
       return path.join(process.cwd(), "temp", selectedDir);
     case "container":
-      return path.join("/etc/", selectedDir);
+      return path.join(process.cwd(), "temp", selectedDir);
     case "linux":
       return path.join(os.homedir(), ".config", selectedDir);
     case "windows":
