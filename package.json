@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "tsx watch ./src/index.ts -e development",
+    "build": "tsup",
     "lint": "run-p -c lint:*",
     "lint:eslint": "eslint 'src/**/*.{ts,tsx}' --fix",
     "lint:tsc": "tsc --noEmit",
@@ -57,7 +58,7 @@
     "npm-run-all": "^4.1.5",
     "prettier": "^3.3.3",
     "regenerator-runtime": "^0.14.1",
-    "tsup": "^8.2.4",
+    "tsup": "^8.3.0",
     "tsx": "^4.19.1",
     "typescript": "5.4.2"
   },

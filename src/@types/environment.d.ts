@@ -4,6 +4,8 @@ declare global {
     interface ProcessEnv {
       NODE_ENV: string;
       DEBUG: boolean;
+
+      API_BASE_URL: string;
     }
   }
 }
