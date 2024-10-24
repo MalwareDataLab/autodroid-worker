@@ -9,5 +9,4 @@ export default defineConfig(options => ({
   clean: true,
   minify: false,
   bundle: true,
-  noExternal: [/(.*)/ ],
 }));
