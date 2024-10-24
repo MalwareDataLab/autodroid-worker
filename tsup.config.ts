@@ -12,4 +12,7 @@ export default defineConfig(options => ({
   target: 'node20',
   platform: 'node',
   noExternal: [/(.*)/ ],
+  loader: {
+    '.node': 'file'
+  }
 }));
