@@ -1157,10 +1157,10 @@ at-least-node@^1.0.0:
   resolved "https://registry.yarnpkg.com/at-least-node/-/at-least-node-1.0.0.tgz#602cd4b46e844ad4effc92a8011a3c46e0238dc2"
   integrity sha512-+q/t7Ekv1EDY2l6Gda6LLiX14rU9TV20Wa3ofeQmwPFZbOMo9DXrLbOjFaaclkXKWidIaopwAObQDqwWtGUjqg==
 
-autodroid@^0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/autodroid/-/autodroid-0.0.2.tgz#a4e58b0803f3d1ab4b2ce7d94c747e409933992d"
-  integrity sha512-OSWJ782PhgGPERSQlYzGQJ7zgj+RWoAr1SGd6C5tiIDI/ZWrNoNhox5/VOKQ2smPdqD+tP2vtHGjvzi+f/Wv4g==
+autodroid@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/autodroid/-/autodroid-0.0.4.tgz#5bb918f0dd3ffb7a047fa65e16bf62bba9368fbd"
+  integrity sha512-uxL4oQ7v+XFSoUUDbcet0bole9KPTLg3RO9hSa23xOuYmdnVj34b9/Mz2BvbtGDruMOqShIwOUedux2kuqzS5w==
   dependencies:
     "@apollo/client" "^3.11.8"
     apollo-link-scalars "^4.0.3"

@@ -1,16 +1,21 @@
 import { Socket } from "socket.io-client";
-
 // Type import
-import { ISocketWorkerProcessingJobMessage } from "./socket.types";
+import {
+  ISocketWorkerProcessingJobMessage,
+  ISocketWorkerStatusMessage,
+} from "./socket.types";
 
 export interface ServerToClientEvents {
   pong: () => void;
 
-  workerProcessingJob: (data: ISocketWorkerProcessingJobMessage) => void;
+  "worker:work": (data: ISocketWorkerProcessingJobMessage) => void;
+  "worker:get-status": () => void;
 }
 
 export interface ClientToServerEvents {
   ping: () => void;
+
+  "worker:status": (data: ISocketWorkerStatusMessage) => void;
 }
 
 export type WebsocketClient = Socket<

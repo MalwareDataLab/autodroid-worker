@@ -1,9 +1,11 @@
 import { WorkerError } from "@shared/errors/WorkerError";
 import { AppConfig } from "@shared/types/appConfig.type";
 
+// Service import
 import { AuthenticationService } from "@modules/authentication/services/authentication.service";
 import { ProcessingService } from "@modules/processing/services/processing.service";
 
+// Infrastructure import
 import { WebSocketApp } from "@shared/infrastructure/websocket";
 import { Api } from "@shared/infrastructure/api";
 
@@ -34,10 +36,6 @@ class Worker {
       await this.authentication.initialization;
       await this.webSocketClient.init();
       await this.processing.init();
-
-      this.webSocketClient.socket.on("workerProcessingJob", data => {
-        this.processing.dispatchProcessing(data.processing_id);
-      });
     } catch (error: any) {
       WorkerError.make({
         key: "@worker/INIT_ERROR",

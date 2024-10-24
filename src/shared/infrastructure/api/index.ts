@@ -1,6 +1,10 @@
-import { getApiConfig, IApiConfig } from "@config/api";
-import { AppContext } from "@shared/types/appContext.type";
 import axios, { AxiosInstance } from "axios";
+
+// Config import
+import { getApiConfig, IApiConfig } from "@config/api";
+
+// Type import
+import { AppContext } from "@shared/types/appContext.type";
 
 class Api {
   private readonly context: AppContext;

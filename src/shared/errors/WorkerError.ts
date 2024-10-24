@@ -1,7 +1,10 @@
 import { randomUUID } from "node:crypto";
 import util from "node:util";
 
+// Config import
 import { getEnvConfig } from "@config/env";
+
+// Util import
 import { sanitizeErrorObject } from "@shared/utils/sanitizeErrorObject.util";
 
 interface IWorkerError {

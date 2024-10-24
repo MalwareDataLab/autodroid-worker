@@ -1,0 +1,74 @@
+# This workflow build and push a Docker image to Docker Hub.
+#
+# Required secrets:
+# - DOCKERHUB_USERNAME: The username of Docker Hub
+# - DOCKERHUB_TOKEN: The token of Docker Hub
+
+name: Build and Push
+
+on:
+  push:
+    branches:
+      - "main"
+
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout to branch
+        uses: actions/checkout@v3
+
+      - name: Extract branch name
+        id: extract-branch
+        shell: bash
+        run: echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
+
+      - name: Get package information
+        id: package-info
+        uses: luizfelipelaviola/get-package-info@v1
+
+      - name: Create image base tag
+        shell: bash
+        id: base-tag
+        run: |
+          echo "tag=$DOCKERHUB_USERNAME/${{ steps.package-info.outputs.name }}" >> $GITHUB_OUTPUT
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+
+      - name: Create image tag list
+        shell: bash
+        id: tag
+        run: |
+          if [ ${{ steps.extract-branch.outputs.branch }} == 'main' ];
+          then
+            echo "tag=\
+              ${{ steps.base-tag.outputs.tag }}:${{ steps.package-info.outputs.version }}-${{ steps.extract-branch.outputs.branch }},\
+              ${{ steps.base-tag.outputs.tag }}:latest,\
+              ${{ steps.base-tag.outputs.tag }}:${{ steps.package-info.outputs.version }}\
+              " | xargs >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ steps.base-tag.outputs.tag }}:${{ steps.package-info.outputs.version }}-${{ steps.extract-branch.outputs.branch }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Show tag list
+        shell: bash
+        run: echo ${{ steps.tag.outputs.tag }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.tag.outputs.tag }}

@@ -1,7 +1,10 @@
 import { io } from "socket.io-client";
 
-import { AppContext } from "@shared/types/appContext.type";
+// Util import
 import { executeAction } from "@shared/utils/executeAction.util";
+
+// Type import
+import { AppContext } from "@shared/types/appContext.type";
 import { WebsocketClient } from "./types";
 
 class WebSocketApp {
@@ -94,10 +97,8 @@ class WebSocketApp {
     this.socket.on("connect_error", err => {
       console.log(`❌ Websocket connection error due ${err.message}`);
 
-      if (!!err.message && err.message.toLowerCase().includes("unauthorized")) {
-        console.log("Handle unauthorized");
-        // handle
-      }
+      if (!!err.message && err.message.toLowerCase().includes("unauthorized"))
+        console.log("❌ Unauthorized access.");
     });
 
     this.socket.io.on("reconnect_attempt", () => {

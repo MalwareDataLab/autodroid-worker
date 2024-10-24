@@ -1,5 +1,6 @@
 import { EventEmitter } from "node:stream";
 
+// Type import
 import { WebsocketClient } from "./types";
 
 class WebsocketAdapterClass {

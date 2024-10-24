@@ -1,8 +1,13 @@
 import path from "node:path";
 import os from "node:os";
 
+// Error import
 import { WorkerError } from "@shared/errors/WorkerError";
+
+// Config import
 import { getEnvConfig } from "@config/env";
+
+// Util import
 import { getSystemEnvironment } from "./getSystemEnvironment.util";
 
 export const getStorageBasePath = (dir: string) => {

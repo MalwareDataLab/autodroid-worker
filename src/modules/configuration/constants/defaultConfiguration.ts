@@ -1,3 +1,4 @@
+// Enum import
 import { CONFIGURATION } from "../types/configuration.enum";
 
 export const defaultConfiguration = {

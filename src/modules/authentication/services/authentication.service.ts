@@ -2,15 +2,26 @@ import { randomUUID, createHash } from "node:crypto";
 import { isHash, isJWT, isUUID } from "validator";
 import axios, { Axios } from "axios";
 
+// Config import
 import { getApiConfig } from "@config/api";
+
+// Error import
 import { WorkerError } from "@shared/errors/WorkerError";
+
+// Enum import
 import { CONFIGURATION } from "@modules/configuration/types/configuration.enum";
+
+// Service import
 import { ConfigurationManagerService } from "@modules/configuration/services/configurationManager.service";
-import { getSystemStaticInfo } from "@shared/utils/getSystemDynamicInfo.util";
+
+// Util import
+import { getSystemStaticInfo } from "@shared/utils/getSystemStaticInfo.util";
 import { DateHelpers } from "@shared/utils/dateHelper.util";
-import type { AppContext } from "@shared/types/appContext.type";
 import { executeAction } from "@shared/utils/executeAction.util";
 import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
+
+// Type import
+import type { AppContext } from "@shared/types/appContext.type";
 
 class AuthenticationService {
   public readonly initialization: Promise<void>;

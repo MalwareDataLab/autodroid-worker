@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "archiver": "^7.0.1",
-    "autodroid": "^0.0.2",
+    "autodroid": "^0.0.4",
     "axios": "^1.7.7",
     "dayjs": "^1.11.13",
     "dockerode": "^4.0.2",

@@ -2,18 +2,27 @@ import fsPromises from "node:fs/promises";
 import fsSync from "node:fs";
 import os from "node:os";
 import crypto from "node:crypto";
-import { ConfigurationManagerService } from "@modules/configuration/services/configurationManager.service";
-import { AppContext } from "@shared/types/appContext.type";
-import { getStorageBasePath } from "@shared/utils/getStorageBasePath.util";
 import path from "node:path";
-import { WorkerError } from "@shared/errors/WorkerError";
 import Docker from "dockerode";
-import { sleep } from "@shared/utils/sleep.util";
 import { rimraf } from "rimraf";
 import archiver from "archiver";
-import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
 import axios from "axios";
+
+// Error import
+import { WorkerError } from "@shared/errors/WorkerError";
+
+// Util import
+import { sleep } from "@shared/utils/sleep.util";
+import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
+import { getStorageBasePath } from "@shared/utils/getStorageBasePath.util";
 import { promisifyWriteStream } from "@shared/utils/promisifyWriteStream.util";
+
+// Service import
+import { ConfigurationManagerService } from "@modules/configuration/services/configurationManager.service";
+
+// Type import
+import { AppContext } from "@shared/types/appContext.type";
+import { getSystemDynamicInfo } from "@shared/utils/getSystemDynamicInfo.util";
 import {
   IProcessing,
   IProcessingFileData,
@@ -50,6 +59,15 @@ class ProcessingService {
     await sleep(1000);
     await this.docker.ping();
     this.startProcessingInterval();
+
+    this.context.webSocketClient.socket.on("worker:work", data => {
+      this.dispatchProcessing(data.processing_id);
+    });
+
+    this.context.webSocketClient.socket.on("worker:get-status", async () => {
+      const processingIds = await this.getCurrentProcessingIds();
+      await this.reportStatus(processingIds);
+    });
   }
 
   private async imageExists(image: string): Promise<boolean> {
@@ -516,17 +534,47 @@ class ProcessingService {
     });
   }
 
+  private async getCurrentProcessingIds(): Promise<string[]> {
+    const processingPath = getStorageBasePath("processing");
+
+    const processingIds = (
+      await fsPromises.readdir(processingPath).catch(() => [])
+    ).filter(file => {
+      return fsSync.lstatSync(path.join(processingPath, file)).isDirectory();
+    });
+
+    return processingIds;
+  }
+
+  private async reportStatus(processingIds: string[]) {
+    const telemetry = await getSystemDynamicInfo();
+
+    if (processingIds.length > 0) {
+      this.context.webSocketClient.socket.emit("worker:status", {
+        status: "WORK",
+        processing_ids: processingIds,
+        telemetry,
+      });
+    } else {
+      this.context.webSocketClient.socket.emit("worker:status", {
+        status: "IDLE",
+        processing_ids: processingIds,
+        telemetry,
+      });
+    }
+  }
+
   private async process(): Promise<void> {
     if (this.context.webSocketClient.getIsConnected()) {
-      const processingPath = getStorageBasePath("processing");
+      const processingIds = await this.getCurrentProcessingIds();
 
-      const processingIds = (
-        await fsPromises.readdir(processingPath).catch(() => [])
-      ).filter(file => {
-        return fsSync.lstatSync(path.join(processingPath, file)).isDirectory();
-      });
+      if (processingIds.length > 0) {
+        console.log(`🔄 Processing ${processingIds.length} items...`);
+      } else {
+        console.log("🆗 Idle. Waiting for items.");
+      }
 
-      console.log(`🔄 Processing ${processingIds.length} items...`);
+      await this.reportStatus(processingIds);
 
       await processingIds.reduce<Promise<any>>((promise, processingId) => {
         return promise.then(async () => {

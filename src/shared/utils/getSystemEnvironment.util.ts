@@ -1,8 +1,11 @@
 import fsSync from "node:fs";
 import os from "node:os";
 
-import { getEnvConfig } from "@config/env";
+// Error import
 import { WorkerError } from "@shared/errors/WorkerError";
+
+// Config import
+import { getEnvConfig } from "@config/env";
 
 const getSystemEnvironment = () => {
   const env = getEnvConfig();
