@@ -54,6 +54,7 @@ const argv = yargs(hideBin(process.argv))
 
 if (argv.env) process.env.NODE_ENV = argv.env;
 if (argv.debug) process.env.DEBUG = true;
+if (argv.url) process.env.API_BASE_URL = argv.url;
 if (argv.set)
   Object.entries(argv.set).forEach(([key, value]) => {
     process.env[key] = value;
