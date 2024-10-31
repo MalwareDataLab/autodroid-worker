@@ -1,12 +1,12 @@
 import fsPromises from "node:fs/promises";
 import fsSync from "node:fs";
-import os from "node:os";
 import crypto from "node:crypto";
 import path from "node:path";
 import Docker from "dockerode";
 import { rimraf } from "rimraf";
 import archiver from "archiver";
 import axios from "axios";
+import semver from "semver";
 
 // Error import
 import { WorkerError } from "@shared/errors/WorkerError";
@@ -14,7 +14,10 @@ import { WorkerError } from "@shared/errors/WorkerError";
 // Util import
 import { sleep } from "@shared/utils/sleep.util";
 import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
-import { getStorageBasePath } from "@shared/utils/getStorageBasePath.util";
+import {
+  getStorageBaseFolder,
+  getStorageBasePath,
+} from "@shared/utils/getStorageBasePath.util";
 import { promisifyWriteStream } from "@shared/utils/promisifyWriteStream.util";
 
 // Service import
@@ -23,6 +26,7 @@ import { ConfigurationManagerService } from "@modules/configuration/services/con
 // Type import
 import { AppContext } from "@shared/types/appContext.type";
 import { getSystemDynamicInfo } from "@shared/utils/getSystemDynamicInfo.util";
+import { getSystemEnvironment } from "@shared/utils/getSystemEnvironment.util";
 import {
   IProcessing,
   IProcessingFileData,
@@ -32,6 +36,8 @@ import {
 class ProcessingService {
   private readonly docker: Docker;
   private readonly context: AppContext;
+
+  private readonly volumeName = "autodroid_worker_data";
 
   private currentProcess: Promise<void> = Promise.resolve();
   private processTimeout: NodeJS.Timeout | null = null;
@@ -49,16 +55,42 @@ class ProcessingService {
     );
   }
 
-  private getProcessingPath(processingId: string): string {
-    const basePath = getStorageBasePath("processing");
-    const processingPath = path.join(basePath, processingId);
-    return processingPath;
+  private async getProcessingPath(processingId: string) {
+    const environment = getSystemEnvironment();
+
+    if (environment === "container") {
+      const volumes = await this.docker.listVolumes();
+      const volumeData =
+        volumes.Volumes.find(vol => vol.Name === this.volumeName) || null;
+
+      if (!volumeData)
+        throw new WorkerError({
+          key: "@processing_service_get_processing_path/MISSING_VOLUME",
+          message: "Missing volume for processing.",
+        });
+    }
+
+    const folderName = "processing";
+
+    return {
+      system_path: path.join(getStorageBasePath(folderName), processingId),
+      base_path: path.join(getStorageBaseFolder(folderName), processingId),
+    };
   }
 
   public async init(): Promise<void> {
     await sleep(1000);
     await this.docker.ping();
     this.startProcessingInterval();
+
+    const dockerVersion = await this.docker.version();
+
+    if (semver.lt(dockerVersion.Version, "26.0.0")) {
+      throw new WorkerError({
+        key: "@processing_service_init/UNSUPPORTED_DOCKER_VERSION",
+        message: `Docker version ${dockerVersion.Version} is not supported. Please upgrade to version 26.0.0 or higher.`,
+      });
+    }
 
     this.context.webSocketClient.socket.on("worker:work", data => {
       this.dispatchProcessing(data.processing_id);
@@ -134,11 +166,43 @@ class ProcessingService {
   }
 
   public async dispatchProcessing(processingId: string): Promise<void> {
+    console.log(`🚀 Worker is about to process ${processingId}.`);
+
     if (this.processTimeout) clearTimeout(this.processTimeout);
     await this.currentProcess;
     if (this.processTimeout) clearTimeout(this.processTimeout);
     await sleep(this.processDelay);
     this.currentProcess = this.startProcessing(processingId);
+  }
+
+  private async fetchDatasetFile(processing: IProcessing): Promise<string> {
+    const dirExists = fsSync.existsSync(processing.system_input_dir);
+    if (!dirExists)
+      throw new WorkerError({
+        key: "@processing_service_fetch_dataset_file/MISSING_DIRECTORY",
+        message: `Directory ${processing.system_input_dir} does not exist.`,
+      });
+
+    const datasetPath = path.join(
+      processing.system_input_dir,
+      processing.data.dataset.file.filename,
+    );
+    const datasetStream = fsSync.createWriteStream(datasetPath);
+    const datasetResponse = await axios.get(
+      processing.data.dataset.file.public_url!,
+      { responseType: "stream" },
+    );
+    datasetResponse.data.pipe(datasetStream);
+    await promisifyWriteStream(datasetStream);
+
+    const fileExists = fsSync.existsSync(datasetPath);
+    if (!fileExists)
+      throw new WorkerError({
+        key: "@processing_service_fetch_dataset_file/MISSING_FILE",
+        message: `Fail to download dataset for processing id ${processing.data.id}. The public URL is ${processing.data.dataset.file.public_url}.`,
+      });
+
+    return datasetPath;
   }
 
   private async startProcessing(processingId: string): Promise<void> {
@@ -148,17 +212,7 @@ class ProcessingService {
       const { processor } = processing.data;
       await this.pullImage(processor.image_tag);
 
-      const datasetPath = path.join(
-        processing.internal_input_dir,
-        processing.data.dataset.file.filename,
-      );
-      const datasetStream = fsSync.createWriteStream(datasetPath);
-      const datasetResponse = await axios.get(
-        processing.data.dataset.file.public_url!,
-        { responseType: "stream" },
-      );
-      datasetResponse.data.pipe(datasetStream);
-      await promisifyWriteStream(datasetStream);
+      await this.fetchDatasetFile(processing);
 
       const params = [
         {
@@ -172,19 +226,48 @@ class ProcessingService {
         ...processing.data.configuration,
       ];
 
-      const { uid } = os.userInfo();
+      const environment = getSystemEnvironment();
+
       const container = await this.docker.createContainer({
         Image: processor.image_tag,
         Tty: true,
         HostConfig: {
-          Binds: [
-            `${processing.internal_input_dir}:${processor.configuration.dataset_input_value}:rw`,
-            `${processing.internal_output_dir}:${processor.configuration.dataset_output_value}:rw`,
-          ],
+          // this doesn't work because should be nested volume directory
+          ...(environment === "container"
+            ? {
+                Mounts: [
+                  {
+                    Type: "volume",
+                    Source: this.volumeName,
+                    Target: processor.configuration.dataset_input_value,
+                    VolumeOptions: {
+                      // https://stackoverflow.com/questions/38164939/can-we-mount-sub-directories-of-a-named-volume-in-docker
+                      // https://docs.docker.com/engine/storage/volumes/#choose-the--v-or---mount-flag
+                      // https://github.com/apocas/dockerode/issues/780
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      // @ts-ignore
+                      Subpath: processing.volume_input_dir,
+                    },
+                  },
+                  {
+                    Type: "volume",
+                    Source: this.volumeName,
+                    Target: processor.configuration.dataset_output_value,
+                    VolumeOptions: {
+                      Subpath: processing.volume_output_dir,
+                    },
+                  },
+                ],
+              }
+            : {
+                Binds: [
+                  `${processing.system_input_dir}:${processor.configuration.dataset_input_value}:rw`,
+                  `${processing.system_output_dir}:${processor.configuration.dataset_output_value}:rw`,
+                ],
+              }),
         },
         Cmd: [
           processor.configuration.command,
-          uid.toString(),
           ...params.flatMap(
             ({ key, value }: { key: string; value: string }) => [
               `--${key}`,
@@ -192,7 +275,7 @@ class ProcessingService {
             ],
           ),
         ],
-      });
+      } as Docker.ContainerCreateOptions);
 
       try {
         await container.start();
@@ -238,34 +321,53 @@ class ProcessingService {
         debug: { data },
       });
 
-    const internal_working_dir = this.getProcessingPath(processingId);
-    const internal_input_dir = path.join(
-      internal_working_dir,
-      "shared",
-      "inputs",
-    );
-    const internal_output_dir = path.join(
-      internal_working_dir,
-      "shared",
-      "outputs",
-    );
+    const { system_path, base_path } =
+      await this.getProcessingPath(processingId);
 
-    if (!fsSync.existsSync(internal_input_dir))
-      await fsPromises.mkdir(internal_input_dir, { recursive: true });
+    const input_path = path.join("shared", "inputs");
+    const output_path = path.join("shared", "outputs");
 
-    if (!fsSync.existsSync(internal_output_dir))
-      await fsPromises.mkdir(internal_output_dir, { recursive: true });
+    const system_input_dir = path.join(system_path, input_path);
+    const system_output_dir = path.join(system_path, output_path);
+
+    const volume_input_dir = path.join(base_path, input_path);
+    const volume_output_dir = path.join(base_path, output_path);
+
+    if (!fsSync.existsSync(system_input_dir))
+      await fsPromises.mkdir(system_input_dir, { recursive: true });
+
+    if (!fsSync.existsSync(system_input_dir))
+      throw new WorkerError({
+        key: "@processing_service_get_processing/MISSING_INPUT_DIRECTORY",
+        message: `Fail to create input directory for processing id ${processingId}.`,
+      });
+
+    if (!fsSync.existsSync(system_output_dir))
+      await fsPromises.mkdir(system_output_dir, { recursive: true });
+
+    if (!fsSync.existsSync(system_output_dir))
+      throw new WorkerError({
+        key: "@processing_service_get_processing/MISSING_OUTPUT_DIRECTORY",
+        message: `Fail to create output directory for processing id ${processingId}.`,
+      });
 
     const configData = configuration.getConfig();
 
     const payload = {
       data,
       container_id: configData.container_id || null,
-      internal_working_dir,
-      internal_input_dir,
-      internal_output_dir,
+
+      system_working_dir: system_path,
+      system_input_dir,
+      system_output_dir,
+
+      volume_working_dir: base_path,
+      volume_input_dir,
+      volume_output_dir,
+
       internal_status: configData.internal_status || PROCESSING_STATUS.PENDING,
     };
+
     await configuration.setConfig(payload);
 
     return {
@@ -288,15 +390,41 @@ class ProcessingService {
       }
 
       if (processingId) {
-        const processingPath = this.getProcessingPath(processingId);
-        if (fsSync.existsSync(processingPath)) {
-          await rimraf(processingPath);
+        const { system_path } = await this.getProcessingPath(processingId);
+        if (fsSync.existsSync(system_path)) {
+          await rimraf(system_path);
         }
       }
     } catch (error) {
       console.log(
         `❌ Fail to cleanup processing id ${processingId}. ${getErrorMessage(error)}`,
       );
+    }
+  }
+
+  private async getLatestLogsFromContainer({
+    container,
+    tail,
+  }: {
+    container: Docker.Container;
+    tail: number;
+  }): Promise<string> {
+    if (!container) return "";
+
+    try {
+      const logs = await container.logs({
+        stdout: true,
+        stderr: true,
+        tail,
+      });
+      const logOutput = logs.toString("utf-8");
+      return logOutput;
+    } catch (error) {
+      console.log(
+        `❌ Fail to get logs from container ${container.id}. ${getErrorMessage(error)}`,
+      );
+
+      return "";
     }
   }
 
@@ -328,11 +456,12 @@ class ProcessingService {
       } else {
         const succeeded = containerInfo.State.ExitCode === 0;
 
-        const files = await fsPromises.readdir(processing.internal_output_dir);
+        const files = await fsPromises.readdir(processing.system_output_dir);
         if (files.length === 0) {
-          console.log(
-            `⭕ No files found on output directory of processing id ${processingId}`,
-          );
+          throw new WorkerError({
+            key: "@processing_service_process_execution/NO_OUTPUT_FILES",
+            message: `Process completed but no files found on output directory of processing id ${processingId}.`,
+          });
         } else {
           await this.zipAndUpload(processing);
         }
@@ -427,12 +556,12 @@ class ProcessingService {
   private async zipAndUpload(processing: IProcessing) {
     try {
       const zipFilePath = path.join(
-        processing.internal_working_dir,
+        processing.system_working_dir,
         `${processing.data.id}.zip`,
       );
 
       const fileData = await this.zipDirectory({
-        containerDir: processing.internal_output_dir,
+        containerDir: processing.system_output_dir,
         zipFilePath,
       });
 
@@ -507,6 +636,18 @@ class ProcessingService {
     if (!processingId) return;
 
     try {
+      const container = await this.getContainerInfo(containerId!);
+      if (container) {
+        const logs = await this.getLatestLogsFromContainer({
+          container,
+          tail: 10,
+        });
+
+        console.log(`📄 Latest logs from container ${containerId}:\n${logs}`);
+      } else {
+        console.log(`❌ Unable to get logs from container ${containerId}.`);
+      }
+
       await this.cleanup({
         processingId,
         containerId,

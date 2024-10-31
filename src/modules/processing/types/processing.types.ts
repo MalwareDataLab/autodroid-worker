@@ -27,7 +27,12 @@ export type IProcessing = {
   data: Processing;
   container_id: string | null;
   internal_status: PROCESSING_STATUS | null;
-  internal_working_dir: string;
-  internal_input_dir: string;
-  internal_output_dir: string;
+
+  system_working_dir: string;
+  system_input_dir: string;
+  system_output_dir: string;
+
+  volume_working_dir: string;
+  volume_input_dir: string;
+  volume_output_dir: string;
 };

@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "tsx watch ./src/index.ts -e development",
+    "dev:debug": "tsx --inspect-brk ./src/index.ts -e development",
     "build": "tsup",
     "lint": "run-p -c lint:*",
     "lint:eslint": "eslint 'src/**/*.{ts,tsx}' --fix",
@@ -23,6 +24,7 @@
     "dockerode": "^4.0.2",
     "form-data": "^4.0.1",
     "rimraf": "^6.0.1",
+    "semver": "^7.6.3",
     "socket.io-client": "^4.8.0",
     "systeminformation": "^5.23.5",
     "validator": "^13.12.0",
@@ -37,6 +39,7 @@
     "@types/archiver": "^6.0.3",
     "@types/dockerode": "^3.3.31",
     "@types/node": "^22.7.9",
+    "@types/semver": "^7.5.8",
     "@types/validator": "^13.12.2",
     "@types/yargs": "^17.0.33",
     "@typescript-eslint/eslint-plugin": "^8.11.0",

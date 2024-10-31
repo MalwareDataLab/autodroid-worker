@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach to Node.js running development server",
+      "request": "attach",
+      "type": "node",
+      "port": 9229,
+      "restart": true,
+      "smartStep": true,
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/**/node_modules/**/*",
+      ],
+      "outFiles": [
+        "${workspaceFolder}/src/**/*.ts"
+      ],
+      "internalConsoleOptions": "neverOpen",
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Node.js transpiled code",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/dist/index.js"
+    }
+  ]
+}
