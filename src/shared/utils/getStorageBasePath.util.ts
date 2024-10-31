@@ -10,10 +10,16 @@ import { getEnvConfig } from "@config/env";
 // Util import
 import { getSystemEnvironment } from "./getSystemEnvironment.util";
 
+export const getStorageBaseFolder = (dir: string) => {
+  const envConfig = getEnvConfig();
+  return path.join(envConfig.APP_INFO.name, dir);
+};
+
 export const getStorageBasePath = (dir: string) => {
   const environment = getSystemEnvironment();
-  const envConfig = getEnvConfig();
-  const selectedDir = path.join(envConfig.APP_INFO.name, dir);
+
+  const selectedDir = getStorageBaseFolder(dir);
+
   switch (environment) {
     case "development":
       return path.join(process.cwd(), "temp", selectedDir);
@@ -32,7 +38,7 @@ export const getStorageBasePath = (dir: string) => {
       );
     default:
       throw new WorkerError({
-        key: "@configuration_manager_service_get_config_file_path/UNKNOWN_PLATFORM",
+        key: "@get_storage_bash_path/UNKNOWN_PLATFORM",
         message: "Unknown environment for configuration file path.",
       });
   }
