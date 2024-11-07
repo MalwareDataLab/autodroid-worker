@@ -624,15 +624,15 @@ class ProcessingService {
         `/worker/processing/${processing.data.id}/result_file/uploaded`,
       );
 
+      console.log(
+        `📤 Uploaded result zip file for processing id ${processing.data.id}!`,
+      );
+
       const metricsFileUploadUrl = await this.getUploadUrl({
         processing,
         kind: "metrics_file",
         fileData: metricsFile,
       });
-
-      console.log(
-        `📤 Uploaded result zip file for processing id ${processing.data.id}!`,
-      );
 
       console.log(
         `📦 Uploading metrics zip file for processing id ${processing.data.id}...`,
