@@ -7,9 +7,13 @@ import { rimraf } from "rimraf";
 import archiver from "archiver";
 import axios from "axios";
 import semver from "semver";
+import { glob } from "glob";
 
 // Error import
 import { WorkerError } from "@shared/errors/WorkerError";
+
+// Config import
+import { getEnvConfig } from "@config/env";
 
 // Util import
 import { sleep } from "@shared/utils/sleep.util";
@@ -30,6 +34,7 @@ import { getSystemEnvironment } from "@shared/utils/getSystemEnvironment.util";
 import {
   IProcessing,
   IProcessingFileData,
+  OutputFileKind,
   PROCESSING_STATUS,
 } from "../types/processing.types";
 
@@ -490,13 +495,18 @@ class ProcessingService {
 
   private async zipDirectory({
     containerDir,
-    zipFilePath,
+    globPatterns,
+    zipDestinationFilePath,
   }: {
     containerDir: string;
-    zipFilePath: string;
+    globPatterns: string[];
+    zipDestinationFilePath: string;
   }): Promise<IProcessingFileData> {
+    const files = await glob(
+      globPatterns.map(pattern => path.join(containerDir, pattern)),
+    );
     return new Promise<IProcessingFileData>((resolve, reject) => {
-      const output = fsSync.createWriteStream(zipFilePath);
+      const output = fsSync.createWriteStream(zipDestinationFilePath);
       const archive = archiver("zip", { zlib: { level: 9 } });
       const hash = crypto.createHash("md5");
 
@@ -509,7 +519,7 @@ class ProcessingService {
         resolve({
           size: archive.pointer(),
           md5_hash,
-          filename: path.basename(zipFilePath),
+          filename: path.basename(zipDestinationFilePath),
           mime_type: "application/zip",
         });
       });
@@ -517,16 +527,22 @@ class ProcessingService {
       archive.on("error", reject);
 
       archive.pipe(output);
-      archive.directory(containerDir, false);
+
+      files.forEach(filePath => {
+        archive.file(filePath, { name: path.relative(containerDir, filePath) });
+      });
+
       archive.finalize();
     });
   }
 
   private async getUploadUrl({
     processing,
+    kind,
     fileData,
   }: {
     processing: IProcessing;
+    kind: OutputFileKind;
     fileData: IProcessingFileData;
   }): Promise<string> {
     if (processing.data.result_file?.upload_url)
@@ -534,56 +550,107 @@ class ProcessingService {
 
     try {
       const { data } = await this.context.api.client.post(
-        `/worker/processing/${processing.data.id}/generate_upload`,
+        `/worker/processing/${processing.data.id}/${kind}/generate_upload`,
         fileData,
       );
 
-      if (!data.result_file.upload_url)
+      if (!data[kind].upload_url)
         throw new WorkerError({
           key: "@processing_service_get_upload_url/MISSING_UPLOAD_URL",
-          message: `Missing upload url for processing id ${processing.data.id}.`,
+          message: `Missing ${kind} upload url for processing id ${processing.data.id}.`,
         });
 
-      return data.result_file.upload_url;
+      return data[kind].upload_url;
     } catch (error) {
       throw new WorkerError({
         key: "@processing_service_get_upload_url/FAIL_TO_GET_UPLOAD_URL",
-        message: `Fail to get upload url for processing id ${processing.data.id}. ${getErrorMessage(error)}`,
+        message: `Fail to get ${kind} upload url for processing id ${processing.data.id}. ${getErrorMessage(error)}`,
       });
     }
   }
 
   private async zipAndUpload(processing: IProcessing) {
     try {
-      const zipFilePath = path.join(
+      const { processor } = processing.data;
+
+      const resultFilePath = path.join(
         processing.system_working_dir,
-        `${processing.data.id}.zip`,
+        `${processing.data.id}_result_file.zip`,
       );
 
-      const fileData = await this.zipDirectory({
+      const resultFile = await this.zipDirectory({
         containerDir: processing.system_output_dir,
-        zipFilePath,
+        globPatterns: processor.configuration.output_result_file_glob_patterns,
+        zipDestinationFilePath: resultFilePath,
       });
 
       console.log(
-        `📦 Zip file created for processing id ${processing.data.id}.`,
+        `📦 Zip result file created for processing id ${processing.data.id}.`,
       );
 
-      const uploadUrl = await this.getUploadUrl({ processing, fileData });
+      const metricsFilePath = path.join(
+        processing.system_working_dir,
+        `${processing.data.id}_metrics_file.zip`,
+      );
+
+      const metricsFile = await this.zipDirectory({
+        containerDir: processing.system_output_dir,
+        globPatterns: processor.configuration.output_metrics_file_glob_patterns,
+        zipDestinationFilePath: metricsFilePath,
+      });
 
       console.log(
-        `📦 Uploading zip file for processing id ${processing.data.id}...`,
+        `📦 Zip metrics file created for processing id ${processing.data.id}.`,
       );
 
-      const stream = fsSync.createReadStream(zipFilePath);
-      await axios.put(uploadUrl, stream, {
+      const resultFileUploadUrl = await this.getUploadUrl({
+        processing,
+        kind: "result_file",
+        fileData: resultFile,
+      });
+
+      console.log(
+        `📦 Uploading result zip file for processing id ${processing.data.id}...`,
+      );
+
+      const resultStream = fsSync.createReadStream(resultFilePath);
+      await axios.put(resultFileUploadUrl, resultStream, {
         headers: {
           "Content-Type": "application/zip",
         },
       });
 
       await this.context.api.client.post(
-        `/worker/processing/${processing.data.id}/uploaded`,
+        `/worker/processing/${processing.data.id}/result_file/uploaded`,
+      );
+
+      const metricsFileUploadUrl = await this.getUploadUrl({
+        processing,
+        kind: "metrics_file",
+        fileData: metricsFile,
+      });
+
+      console.log(
+        `📤 Uploaded result zip file for processing id ${processing.data.id}!`,
+      );
+
+      console.log(
+        `📦 Uploading metrics zip file for processing id ${processing.data.id}...`,
+      );
+
+      const metricsStream = fsSync.createReadStream(metricsFilePath);
+      await axios.put(metricsFileUploadUrl, metricsStream, {
+        headers: {
+          "Content-Type": "application/zip",
+        },
+      });
+
+      await this.context.api.client.post(
+        `/worker/processing/${processing.data.id}/metrics_file/uploaded`,
+      );
+
+      console.log(
+        `📤 Uploaded metrics zip file for processing id ${processing.data.id}!`,
       );
 
       console.log(
@@ -690,15 +757,19 @@ class ProcessingService {
   private async reportStatus(processingIds: string[]) {
     const telemetry = await getSystemDynamicInfo();
 
+    const { version } = getEnvConfig().APP_INFO;
+
     if (processingIds.length > 0) {
       this.context.webSocketClient.socket.emit("worker:status", {
         status: "WORK",
+        version,
         processing_ids: processingIds,
         telemetry,
       });
     } else {
       this.context.webSocketClient.socket.emit("worker:status", {
         status: "IDLE",
+        version,
         processing_ids: processingIds,
         telemetry,
       });

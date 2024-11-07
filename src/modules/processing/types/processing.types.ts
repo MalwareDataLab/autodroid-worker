@@ -3,6 +3,8 @@ import { Processing } from "autodroid";
 // Service import
 import { ConfigurationManagerService } from "@modules/configuration/services/configurationManager.service";
 
+export type OutputFileKind = "result_file" | "metrics_file";
+
 export enum PROCESSING_STATUS {
   SUCCEEDED = "SUCCEEDED",
   FAILED = "FAILED",
