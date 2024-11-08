@@ -554,13 +554,13 @@ class ProcessingService {
         fileData,
       );
 
-      if (!data[kind].upload_url)
+      if (!data.upload_url)
         throw new WorkerError({
           key: "@processing_service_get_upload_url/MISSING_UPLOAD_URL",
           message: `Missing ${kind} upload url for processing id ${processing.data.id}.`,
         });
 
-      return data[kind].upload_url;
+      return data.upload_url;
     } catch (error) {
       throw new WorkerError({
         key: "@processing_service_get_upload_url/FAIL_TO_GET_UPLOAD_URL",

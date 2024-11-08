@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "archiver": "^7.0.1",
-    "autodroid": "^0.0.4",
+    "autodroid": "^0.0.5",
     "axios": "^1.7.7",
     "dayjs": "^1.11.13",
     "dockerode": "^4.0.2",
@@ -53,7 +53,7 @@
     "eslint-import-resolver-typescript": "^3.6.3",
     "eslint-plugin-deprecation": "^3.0.0",
     "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-import-helpers": "^2.0.1",
+    "eslint-plugin-import-helpers": "1",
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-unicorn": "^56.0.0",
     "globals": "^15.12.0",
