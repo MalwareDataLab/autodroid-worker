@@ -6,6 +6,7 @@ export type ISocketWorkerProcessingJobMessage = {
 
 export type ISocketWorkerStatusMessage = {
   status: "WORK" | "IDLE";
+  version: string;
   processing_ids: string[];
   telemetry: Systeminformation.DynamicData;
 };
