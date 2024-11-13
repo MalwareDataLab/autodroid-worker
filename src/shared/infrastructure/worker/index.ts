@@ -1,13 +1,19 @@
+// Error import
 import { WorkerError } from "@shared/errors/WorkerError";
+
+// Type import
 import { AppConfig } from "@shared/types/appConfig.type";
 
+// Util import
+import { logger } from "@shared/utils/logger";
+
 // Service import
-import { AuthenticationService } from "@modules/authentication/services/authentication.service";
 import { ProcessingService } from "@modules/processing/services/processing.service";
+import { AuthenticationService } from "@modules/authentication/services/authentication.service";
 
 // Infrastructure import
-import { WebSocketApp } from "@shared/infrastructure/websocket";
 import { Api } from "@shared/infrastructure/api";
+import { WebSocketApp } from "@shared/infrastructure/websocket";
 
 class Worker {
   public readonly initialization: Promise<void>;
@@ -44,7 +50,7 @@ class Worker {
           error,
         },
       });
-      console.log(
+      logger.error(
         `❌ Fail to initialize worker. Shutting down. ${error.message}`,
       );
       process.exit(1);

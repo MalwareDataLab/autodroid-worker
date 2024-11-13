@@ -7,6 +7,7 @@ import { WorkerError } from "@shared/errors/WorkerError";
 
 // Util import
 import { sleep } from "@shared/utils/sleep.util";
+import { logger } from "@shared/utils/logger";
 import { getStorageBasePath } from "@shared/utils/getStorageBasePath.util";
 
 // Config import
@@ -31,12 +32,12 @@ export class ConfigurationManagerService<
 
   private config: D;
 
-  constructor(configuration: T) {
-    this.configurationKey = configuration;
+  constructor(configurationKey: T) {
+    this.configurationKey = configurationKey;
     this.defaultConfiguration =
-      configuration in defaultConfiguration
+      configurationKey in defaultConfiguration
         ? (defaultConfiguration[
-            configuration as keyof typeof defaultConfiguration
+            configurationKey as keyof typeof defaultConfiguration
           ] as D)
         : null;
 
@@ -72,7 +73,7 @@ export class ConfigurationManagerService<
   private loadConfig(): D {
     if (!fsSync.existsSync(this.path)) {
       if (Object.keys(CONFIGURATION).includes(this.configurationKey))
-        console.warn(
+        logger.warn(
           `Config file not found, creating a new one at ${this.path}`,
         );
       this.setupInitialData();
