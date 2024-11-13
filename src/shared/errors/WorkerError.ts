@@ -5,6 +5,7 @@ import util from "node:util";
 import { getEnvConfig } from "@config/env";
 
 // Util import
+import { logger } from "@shared/utils/logger";
 import { sanitizeErrorObject } from "@shared/utils/sanitizeErrorObject.util";
 
 interface IWorkerError {
@@ -67,7 +68,7 @@ class WorkerError extends Error {
       !envConfig.isTestEnv
     ) {
       if (envConfig.DEBUG)
-        console.log(`❌ Error debug: `, util.inspect(this, false, 4, true));
+        logger.error(`❌ Error debug: `, util.inspect(this, false, 4, true));
     }
   }
 

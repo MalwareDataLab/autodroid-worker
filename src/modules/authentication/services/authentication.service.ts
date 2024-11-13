@@ -4,6 +4,7 @@ import axios, { Axios } from "axios";
 
 // Config import
 import { getApiConfig } from "@config/api";
+import { getEnvConfig } from "@config/env";
 
 // Error import
 import { WorkerError } from "@shared/errors/WorkerError";
@@ -15,10 +16,11 @@ import { CONFIGURATION } from "@modules/configuration/types/configuration.enum";
 import { ConfigurationManagerService } from "@modules/configuration/services/configurationManager.service";
 
 // Util import
-import { getSystemStaticInfo } from "@shared/utils/getSystemStaticInfo.util";
+import { logger } from "@shared/utils/logger";
 import { DateHelpers } from "@shared/utils/dateHelper.util";
 import { executeAction } from "@shared/utils/executeAction.util";
 import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
+import { getSystemStaticInfo } from "@shared/utils/getSystemStaticInfo.util";
 
 // Type import
 import type { AppContext } from "@shared/types/appContext.type";
@@ -59,11 +61,15 @@ class AuthenticationService {
   }
 
   private async init() {
+    const { version } = getEnvConfig().APP_INFO;
+
     await this.handleInternalId();
     await this.handleSignature();
     await this.handleAuthentication({
       forceAccessTokenUpdate: true,
     });
+
+    logger.info(`🆗 Worker v${version} id ${this.getConfig().worker_id}`);
   }
 
   public getConfig() {

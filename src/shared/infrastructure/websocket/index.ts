@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
 
 // Util import
+import { logger } from "@shared/utils/logger";
 import { executeAction } from "@shared/utils/executeAction.util";
 
 // Type import
@@ -83,38 +84,38 @@ class WebSocketApp {
 
   private startCommonListeners(): void {
     this.socket.on("connect", () => {
-      console.log("✅ Connected to server");
+      logger.info("✅ Connected to server");
     });
 
     this.socket.on("disconnect", () => {
-      console.log("⭕ Disconnected from server");
+      logger.info("⭕ Disconnected from server");
     });
 
     this.socket.io.on("error", error => {
-      console.log(`❌ Websocket error due ${error.message}`);
+      logger.error(`❌ Websocket error due ${error.message}`);
     });
 
     this.socket.on("connect_error", err => {
-      console.log(`❌ Websocket connection error due ${err.message}`);
+      logger.error(`❌ Websocket connection error due ${err.message}`);
 
       if (!!err.message && err.message.toLowerCase().includes("unauthorized"))
-        console.log("❌ Unauthorized access.");
+        logger.error("❌ Unauthorized access.");
     });
 
     this.socket.io.on("reconnect_attempt", () => {
-      console.log("🔃 Trying to reconnect to server");
+      logger.info("🔃 Trying to reconnect to server");
     });
 
     this.socket.io.on("reconnect_error", error => {
-      console.log(`❌ Error while reconnecting ${error.message}`);
+      logger.error(`❌ Error while reconnecting ${error.message}`);
     });
 
     this.socket.io.on("reconnect_failed", () => {
-      console.log(`❌ Fail to reconnect to server`);
+      logger.error(`❌ Fail to reconnect to server`);
     });
 
     this.socket.io.on("reconnect", () => {
-      console.log("🔄 Reconnected to server");
+      logger.info("🔄 Reconnected to server");
     });
   }
 

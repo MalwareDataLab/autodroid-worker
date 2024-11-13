@@ -2,6 +2,7 @@ import fsPromises from "node:fs/promises";
 import fsSync from "node:fs";
 import crypto from "node:crypto";
 import path from "node:path";
+import os from "node:os";
 import Docker from "dockerode";
 import { rimraf } from "rimraf";
 import archiver from "archiver";
@@ -16,11 +17,12 @@ import { WorkerError } from "@shared/errors/WorkerError";
 import { getEnvConfig } from "@config/env";
 
 // Util import
+import { logger } from "@shared/utils/logger";
 import { sleep } from "@shared/utils/sleep.util";
 import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
 import {
-  getStorageBaseFolder,
   getStorageBasePath,
+  getStorageBaseFolder,
 } from "@shared/utils/getStorageBasePath.util";
 import { promisifyWriteStream } from "@shared/utils/promisifyWriteStream.util";
 
@@ -29,12 +31,13 @@ import { ConfigurationManagerService } from "@modules/configuration/services/con
 
 // Type import
 import { AppContext } from "@shared/types/appContext.type";
+import { WORKER_STATUS } from "@shared/infrastructure/websocket/socket.types";
 import { getSystemDynamicInfo } from "@shared/utils/getSystemDynamicInfo.util";
 import { getSystemEnvironment } from "@shared/utils/getSystemEnvironment.util";
 import {
   IProcessing,
-  IProcessingFileData,
   OutputFileKind,
+  IProcessingFileData,
   PROCESSING_STATUS,
 } from "../types/processing.types";
 
@@ -48,6 +51,9 @@ class ProcessingService {
   private processTimeout: NodeJS.Timeout | null = null;
   private processDelay = 5000;
 
+  private status: WORKER_STATUS | null = null;
+  private processCount: number | null = null;
+
   constructor(params: { context: AppContext }) {
     this.context = params.context;
     this.docker = new Docker(
@@ -58,6 +64,10 @@ class ProcessingService {
             port: Number(process.env.DOCKER_PORT),
           },
     );
+  }
+
+  private generateContainerName(processingId: string) {
+    return `autodroid_worker_${processingId}`;
   }
 
   private async getProcessingPath(processingId: string) {
@@ -118,7 +128,10 @@ class ProcessingService {
     const exists = await this.imageExists(image);
 
     return new Promise((resolve, reject) => {
-      if (exists) resolve();
+      if (exists) {
+        resolve();
+        return;
+      }
 
       this.docker.pull(image, (err: any, stream: any) => {
         if (err) {
@@ -126,7 +139,7 @@ class ProcessingService {
           return;
         }
 
-        console.log(`🔃 Pulling image ${image}...`);
+        logger.info(`🔃 Pulling image ${image}...`);
 
         this.docker.modem.followProgress(
           stream,
@@ -136,7 +149,7 @@ class ProcessingService {
               return;
             }
 
-            console.log(`💥 Image ${image} pulled successfully`);
+            logger.info(`💥 Image ${image} pulled successfully`);
             resolve();
           },
         );
@@ -144,34 +157,31 @@ class ProcessingService {
     });
   }
 
-  private async getContainerInfo(
-    containerId: string,
-  ): Promise<Docker.Container | null> {
+  private async getProcessingContainer({
+    processingId,
+  }: {
+    processingId: string;
+  }): Promise<Docker.Container | null> {
+    const containerName = this.generateContainerName(processingId);
     try {
-      const containerList = await this.docker.listContainers({
-        all: true,
+      const containers = await this.docker.listContainers({
+        limit: 1,
+        filters: `{"name": ["${containerName}"]}`,
       });
 
-      const exists = containerList.find(
-        container => container.Id === containerId,
-      );
-
-      if (exists) {
-        const container = this.docker.getContainer(containerId);
-        return container;
-      }
+      if (containers.length === 0) return null;
+      const container = this.docker.getContainer(containers[0].Id);
+      return container;
     } catch {
       throw new WorkerError({
         key: "@processing_service/FAIL_TO_GET_CONTAINER",
-        message: `Unable to get container ${containerId}.`,
+        message: `Unable to get container ${containerName}.`,
       });
     }
-
-    return null;
   }
 
   public async dispatchProcessing(processingId: string): Promise<void> {
-    console.log(`🚀 Worker is about to process ${processingId}.`);
+    logger.info(`🚀 Worker is about to process ${processingId}.`);
 
     if (this.processTimeout) clearTimeout(this.processTimeout);
     await this.currentProcess;
@@ -234,10 +244,10 @@ class ProcessingService {
       const environment = getSystemEnvironment();
 
       const container = await this.docker.createContainer({
+        name: this.generateContainerName(processingId),
         Image: processor.image_tag,
         Tty: true,
         HostConfig: {
-          // this doesn't work because should be nested volume directory
           ...(environment === "container"
             ? {
                 Mounts: [
@@ -289,6 +299,8 @@ class ProcessingService {
           "container_id",
           container.id,
         );
+
+        await sleep(5000);
       } catch (error) {
         await container.remove({ force: true });
         throw error;
@@ -296,7 +308,6 @@ class ProcessingService {
     } catch (error) {
       await this.handleFailure({
         processingId,
-        containerId: null,
         reason: (error as any).message,
       });
     } finally {
@@ -381,27 +392,19 @@ class ProcessingService {
     };
   }
 
-  private async cleanup({
-    processingId,
-    containerId,
-  }: {
-    processingId: string;
-    containerId?: string | null;
-  }) {
+  private async cleanup({ processingId }: { processingId: string }) {
     try {
-      if (containerId) {
-        const container = this.docker.getContainer(containerId);
-        await container.remove({ force: true });
+      if (!processingId) throw new Error("Processing ID not set.");
+
+      const { system_path } = await this.getProcessingPath(processingId);
+      if (fsSync.existsSync(system_path)) {
+        await rimraf(system_path);
       }
 
-      if (processingId) {
-        const { system_path } = await this.getProcessingPath(processingId);
-        if (fsSync.existsSync(system_path)) {
-          await rimraf(system_path);
-        }
-      }
+      const container = await this.getProcessingContainer({ processingId });
+      if (container) await container.remove({ force: true });
     } catch (error) {
-      console.log(
+      logger.error(
         `❌ Fail to cleanup processing id ${processingId}. ${getErrorMessage(error)}`,
       );
     }
@@ -425,7 +428,7 @@ class ProcessingService {
       const logOutput = logs.toString("utf-8");
       return logOutput;
     } catch (error) {
-      console.log(
+      logger.error(
         `❌ Fail to get logs from container ${container.id}. ${getErrorMessage(error)}`,
       );
 
@@ -433,23 +436,54 @@ class ProcessingService {
     }
   }
 
+  private async updateProcessingFilePermissions(processing: IProcessing) {
+    const environment = getSystemEnvironment();
+
+    if (environment !== "container") {
+      const { processor } = processing.data;
+      const { uid, gid } = os.userInfo();
+
+      const busyboxExists = await this.imageExists("busybox:latest");
+      if (!busyboxExists) await this.pullImage("busybox:latest");
+
+      const commands = [
+        `chown -R ${uid}:${gid} ${processor.configuration.dataset_input_value}`,
+        `chown -R ${uid}:${gid} ${processor.configuration.dataset_output_value}`,
+        `chmod -R 777 ${processor.configuration.dataset_input_value}`,
+        `chmod -R 777 ${processor.configuration.dataset_output_value}`,
+      ];
+
+      const utilContainer = await this.docker.createContainer({
+        Image: "busybox",
+        Cmd: ["sh", "-c", commands.join(" && ")],
+        HostConfig: {
+          Binds: [
+            `${processing.system_input_dir}:${processor.configuration.dataset_input_value}:rw`,
+            `${processing.system_output_dir}:${processor.configuration.dataset_output_value}:rw`,
+          ],
+        },
+      });
+
+      await utilContainer.start();
+      await utilContainer.wait();
+      await utilContainer.remove();
+    }
+  }
+
   private async processExecution(processingId: string) {
     const processing = await this.getProcessing(processingId);
-    const configData = processing.configuration.getConfig();
+
+    await this.updateProcessingFilePermissions(processing);
 
     try {
-      if (!configData.container_id)
-        throw new WorkerError({
-          key: "@processing_service_process_execution/NO_CONTAINER_ID_FOR_PROCESSING",
-          message: `Unable to find container ID for ${processing.data.id}.`,
-        });
+      const containerName = this.generateContainerName(processingId);
 
-      const container = await this.getContainerInfo(configData.container_id);
+      const container = await this.getProcessingContainer({ processingId });
 
       if (!container)
         throw new WorkerError({
           key: "@processing_service_process_execution/MISSING_CONTAINER",
-          message: `Unable to find container ${configData.container_id}.`,
+          message: `Unable to find container ${containerName}.`,
         });
 
       const containerInfo = await container.inspect();
@@ -460,6 +494,8 @@ class ProcessingService {
         );
       } else {
         const succeeded = containerInfo.State.ExitCode === 0;
+
+        await this.updateProcessingFilePermissions(processing);
 
         const files = await fsPromises.readdir(processing.system_output_dir);
         if (files.length === 0) {
@@ -474,19 +510,16 @@ class ProcessingService {
         if (succeeded) {
           await this.handleSuccess({
             processingId,
-            containerId: configData.container_id,
           });
         } else {
           await this.handleFailure({
             processingId,
-            containerId: configData.container_id,
             reason: `Container exited with code ${containerInfo.State.ExitCode}.`,
           });
         }
       }
     } catch (error) {
       await this.handleFailure({
-        containerId: configData.container_id,
         processingId,
         reason: (error as any).message,
       });
@@ -584,7 +617,7 @@ class ProcessingService {
         zipDestinationFilePath: resultFilePath,
       });
 
-      console.log(
+      logger.info(
         `📦 Zip result file created for processing id ${processing.data.id}.`,
       );
 
@@ -599,7 +632,7 @@ class ProcessingService {
         zipDestinationFilePath: metricsFilePath,
       });
 
-      console.log(
+      logger.info(
         `📦 Zip metrics file created for processing id ${processing.data.id}.`,
       );
 
@@ -609,7 +642,7 @@ class ProcessingService {
         fileData: resultFile,
       });
 
-      console.log(
+      logger.info(
         `📦 Uploading result zip file for processing id ${processing.data.id}...`,
       );
 
@@ -624,7 +657,7 @@ class ProcessingService {
         `/worker/processing/${processing.data.id}/result_file/uploaded`,
       );
 
-      console.log(
+      logger.info(
         `📤 Uploaded result zip file for processing id ${processing.data.id}!`,
       );
 
@@ -634,7 +667,7 @@ class ProcessingService {
         fileData: metricsFile,
       });
 
-      console.log(
+      logger.info(
         `📦 Uploading metrics zip file for processing id ${processing.data.id}...`,
       );
 
@@ -649,11 +682,11 @@ class ProcessingService {
         `/worker/processing/${processing.data.id}/metrics_file/uploaded`,
       );
 
-      console.log(
+      logger.info(
         `📤 Uploaded metrics zip file for processing id ${processing.data.id}!`,
       );
 
-      console.log(
+      logger.info(
         `✅ Zip file uploaded successfully for processing id ${processing.data.id}.`,
       );
     } catch (error) {
@@ -664,13 +697,7 @@ class ProcessingService {
     }
   }
 
-  private async handleSuccess({
-    processingId,
-    containerId,
-  }: {
-    processingId: string;
-    containerId: string;
-  }) {
+  private async handleSuccess({ processingId }: { processingId: string }) {
     if (!processingId) return;
 
     try {
@@ -680,12 +707,11 @@ class ProcessingService {
 
       await this.cleanup({
         processingId,
-        containerId,
       });
 
-      console.log(`✅ Processing id ${processingId} succeeded.`);
+      logger.info(`✅ Processing id ${processingId} succeeded.`);
     } catch (error) {
-      console.log(
+      logger.error(
         `❌ Fail to handle success of processing id ${processingId}. ${getErrorMessage(error)}`,
       );
     }
@@ -693,31 +719,33 @@ class ProcessingService {
 
   private async handleFailure({
     processingId,
-    containerId,
     reason,
   }: {
     processingId: string;
-    containerId: string | null;
     reason: string | null;
   }) {
     if (!processingId) return;
 
     try {
-      const container = await this.getContainerInfo(containerId!);
+      const container = await this.getProcessingContainer({ processingId });
       if (container) {
         const logs = await this.getLatestLogsFromContainer({
           container,
           tail: 10,
         });
 
-        console.log(`📄 Latest logs from container ${containerId}:\n${logs}`);
+        if (logs)
+          logger.info(
+            `📄 Latest logs from container ${container.id}:\n${logs}`,
+          );
       } else {
-        console.log(`❌ Unable to get logs from container ${containerId}.`);
+        logger.error(
+          `❌ Unable to get logs from container of processing ${processingId}.`,
+        );
       }
 
       await this.cleanup({
         processingId,
-        containerId,
       });
 
       await this.context.api.client.post(
@@ -725,9 +753,9 @@ class ProcessingService {
         { reason: reason ? String(reason) : null },
       );
 
-      console.log(`❌ Processing id ${processingId} failed. ${reason}`);
+      logger.info(`❌ Processing id ${processingId} failed. ${reason}`);
     } catch (error) {
-      console.log(
+      logger.error(
         `❌ Fail to handle failure of processing id ${processingId}. ${getErrorMessage(error)}`,
       );
     }
@@ -758,33 +786,35 @@ class ProcessingService {
     const telemetry = await getSystemDynamicInfo();
 
     const { version } = getEnvConfig().APP_INFO;
+    const workerId = this.context.authentication.getConfig().worker_id;
 
-    if (processingIds.length > 0) {
-      this.context.webSocketClient.socket.emit("worker:status", {
-        status: "WORK",
-        version,
-        processing_ids: processingIds,
-        telemetry,
-      });
-    } else {
-      this.context.webSocketClient.socket.emit("worker:status", {
-        status: "IDLE",
-        version,
-        processing_ids: processingIds,
-        telemetry,
-      });
-    }
+    if (
+      processingIds.length > 0 &&
+      (this.status !== WORKER_STATUS.WORK ||
+        this.processCount !== processingIds.length)
+    )
+      logger.info(
+        `🔄 Processing ${processingIds.length} items... [Worker ID ${workerId}]`,
+      );
+
+    if (processingIds.length === 0 && this.status !== WORKER_STATUS.IDLE)
+      logger.info(`🆗 Waiting for items. [Worker ID ${workerId}]`);
+
+    this.processCount = processingIds.length;
+    this.status =
+      this.processCount > 0 ? WORKER_STATUS.WORK : WORKER_STATUS.IDLE;
+
+    this.context.webSocketClient.socket.emit("worker:status", {
+      status: this.status,
+      version,
+      processing_ids: processingIds,
+      telemetry,
+    });
   }
 
   private async process(): Promise<void> {
     if (this.context.webSocketClient.getIsConnected()) {
       const processingIds = await this.getCurrentProcessingIds();
-
-      if (processingIds.length > 0) {
-        console.log(`🔄 Processing ${processingIds.length} items...`);
-      } else {
-        console.log("🆗 Idle. Waiting for items.");
-      }
 
       await this.reportStatus(processingIds);
 
