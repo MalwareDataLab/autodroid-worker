@@ -68,7 +68,7 @@ class WorkerError extends Error {
       !envConfig.isTestEnv
     ) {
       if (envConfig.DEBUG)
-        logger.error(`❌ Error debug: `, util.inspect(this, false, 4, true));
+        logger.error(`❌ Error debug: ${util.inspect(this, false, 4, true)}`);
     }
   }
 
