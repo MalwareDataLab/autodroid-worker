@@ -1,0 +1,32 @@
+services:
+  autodroid_worker:
+    container_name: autodroid_worker
+    image: malwaredatalab/autodroid-worker:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+      - DEBUG=false
+      - API_BASE_URL=http://host.docker.internal:3333
+      - REGISTRATION_TOKEN=2aEWkAzu5jgkxPcfmtFyXfK04CKnrjTw
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - autodroid_worker_data:/usr/app/temp
+    restart: always
+    network_mode: "host"
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    command: --interval 30 autodroid_worker
+
+volumes:
+  autodroid_worker_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./.runtime

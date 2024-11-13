@@ -6,6 +6,7 @@ declare global {
       DEBUG: boolean;
 
       API_BASE_URL: string;
+      REGISTRATION_TOKEN: string;
     }
   }
 }

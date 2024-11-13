@@ -6,7 +6,12 @@ const getEnvConfig = () =>
 
     isTestEnv: process.env.NODE_ENV?.toLowerCase() === "test",
 
+    DEBUG: String(process.env.DEBUG) === "true",
+
     APP_INFO,
-  }) as NodeJS.ProcessEnv & { APP_INFO: typeof APP_INFO; isTestEnv: boolean };
+  }) as NodeJS.ProcessEnv & {
+    APP_INFO: typeof APP_INFO;
+    isTestEnv: boolean;
+  };
 
 export { getEnvConfig };
