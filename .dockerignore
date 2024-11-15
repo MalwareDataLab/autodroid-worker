@@ -2,7 +2,6 @@
 .gitignore
 .vscode
 *.md
-*.lock
 *.log
 
 *Dockerfile*
