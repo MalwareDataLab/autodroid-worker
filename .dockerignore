@@ -1,0 +1,13 @@
+.git
+.gitignore
+.vscode
+*.md
+*.lock
+*.log
+
+*Dockerfile*
+*docker-compose*
+.dockerignore
+
+node_modules
+dist

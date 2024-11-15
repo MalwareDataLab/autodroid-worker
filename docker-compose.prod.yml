@@ -8,7 +8,7 @@ services:
     environment:
       - NODE_ENV=production
       - DEBUG=false
-      - API_BASE_URL=https://autodroid-api.unihacker.club
+      - API_BASE_URL=https://mdl-api.unihacker.club
       - REGISTRATION_TOKEN=
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
