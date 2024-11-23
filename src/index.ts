@@ -54,20 +54,22 @@ const argv = yargs(hideBin(process.argv))
 const config = {
   REGISTRATION_TOKEN: argv.token || process.env.REGISTRATION_TOKEN,
   NODE_ENV: argv.env || process.env.NODE_ENV || "development",
-  DEBUG: String(argv.debug || process.env.DEBUG) === "true",
+  DEBUG: String(argv.debug || process.env.DEBUG) === "true" ? "true" : "false",
   API_BASE_URL:
     argv.url || process.env.API_BASE_URL || "https://mdl-api.unihacker.club",
 };
 
 if (argv.set)
-  Object.entries(argv.set).forEach(([key, value]) => {
-    process.env[key] = value;
-  });
+  Object.entries(argv.set)
+    .filter(([, value]) => !!value)
+    .forEach(([key, value]) => {
+      process.env[key] = value;
+    });
 
 const configSchema = z.object({
   REGISTRATION_TOKEN: z.string().optional(),
   NODE_ENV: z.enum(["development", "production"]),
-  DEBUG: z.boolean().optional(),
+  DEBUG: z.enum(["true", "false"]),
   API_BASE_URL: z.string().url(),
 });
 
@@ -81,7 +83,11 @@ if (!parsedConfig.success) {
   process.exit(1);
 }
 
-Object.assign(process.env, parsedConfig.data);
+Object.entries(parsedConfig.data)
+  .filter(([, value]) => !!value)
+  .forEach(([key, value]) => {
+    process.env[key] = value;
+  });
 
 const worker = new Worker({
   registration_token: process.env.REGISTRATION_TOKEN,

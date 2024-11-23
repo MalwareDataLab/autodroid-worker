@@ -3,6 +3,9 @@ import axios, { AxiosInstance } from "axios";
 // Config import
 import { getApiConfig, IApiConfig } from "@config/api";
 
+// Util import
+import { logger } from "@shared/utils/logger";
+
 // Type import
 import { AppContext } from "@shared/types/appContext.type";
 
@@ -25,11 +28,20 @@ class Api {
     });
 
     this.client.interceptors.request.use(async config => {
-      const auth = await this.context.authentication.handleAuthentication();
+      try {
+        const auth = await this.context.authentication.refreshAuthentication({
+          forceAccessTokenUpdate: true,
+        });
 
-      Object.assign(config.headers, {
-        Authorization: `Bearer ${auth.access_token}`,
-      });
+        Object.assign(config.headers, {
+          Authorization: `Bearer ${auth.access_token}`,
+        });
+      } catch (error) {
+        logger.error(
+          `❌ Error while refreshing access token during calls to API. Unable to continue. ${error}`,
+        );
+        process.exit(1);
+      }
 
       return config;
     });

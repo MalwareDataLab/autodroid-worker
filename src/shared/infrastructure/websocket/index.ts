@@ -10,8 +10,10 @@ import { WebsocketClient } from "./types";
 
 class WebSocketApp {
   public socket: WebsocketClient;
+  private context: AppContext;
 
   constructor({ context }: { context: AppContext }) {
+    this.context = context;
     this.socket = io(context.api.config.baseUrl, {
       path: "/websocket",
 
@@ -46,6 +48,20 @@ class WebSocketApp {
       });
   }
 
+  private async handleConnectionError(): Promise<void> {
+    try {
+      await this.context.authentication.refreshAuthentication({
+        forceAccessTokenUpdate: true,
+      });
+      await this.init();
+    } catch (error) {
+      logger.error(
+        `❌ Error while refreshing access token during websocket connection opening. Unable to continue ${error}`,
+      );
+      process.exit(1);
+    }
+  }
+
   private async connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       const stopListeners = () => {
@@ -63,6 +79,11 @@ class WebSocketApp {
       const onError = (error: any) => {
         stopListeners();
         this.disconnect();
+        if (
+          !!error.message &&
+          error.message.toLowerCase().includes("unauthorized")
+        )
+          this.handleConnectionError();
         reject(error);
       };
 

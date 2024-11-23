@@ -65,7 +65,7 @@ class AuthenticationService {
 
     await this.handleInternalId();
     await this.handleSignature();
-    await this.handleAuthentication({
+    await this.refreshAuthentication({
       forceAccessTokenUpdate: true,
     });
 
@@ -76,7 +76,7 @@ class AuthenticationService {
     return this.config.getConfig();
   }
 
-  public async handleAuthentication(
+  public async refreshAuthentication(
     params: {
       forceRefreshTokenUpdate?: boolean;
       forceAccessTokenUpdate?: boolean;
