@@ -49,10 +49,17 @@ class WebSocketApp {
   }
 
   private async handleConnectionError(): Promise<void> {
-    await this.context.authentication.refreshAuthentication({
-      forceAccessTokenUpdate: true,
-    });
-    await this.init();
+    try {
+      await this.context.authentication.refreshAuthentication({
+        forceAccessTokenUpdate: true,
+      });
+      await this.init();
+    } catch (error) {
+      logger.error(
+        `❌ Error while refreshing access token during websocket connection opening. Unable to continue ${error}`,
+      );
+      process.exit(1);
+    }
   }
 
   private async connect(): Promise<void> {
