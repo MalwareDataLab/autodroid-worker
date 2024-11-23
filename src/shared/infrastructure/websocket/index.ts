@@ -10,8 +10,10 @@ import { WebsocketClient } from "./types";
 
 class WebSocketApp {
   public socket: WebsocketClient;
+  private context: AppContext;
 
   constructor({ context }: { context: AppContext }) {
+    this.context = context;
     this.socket = io(context.api.config.baseUrl, {
       path: "/websocket",
 
@@ -46,6 +48,13 @@ class WebSocketApp {
       });
   }
 
+  private async handleConnectionError(): Promise<void> {
+    await this.context.authentication.refreshAuthentication({
+      forceAccessTokenUpdate: true,
+    });
+    await this.init();
+  }
+
   private async connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       const stopListeners = () => {
@@ -63,6 +72,11 @@ class WebSocketApp {
       const onError = (error: any) => {
         stopListeners();
         this.disconnect();
+        if (
+          !!error.message &&
+          error.message.toLowerCase().includes("unauthorized")
+        )
+          this.handleConnectionError();
         reject(error);
       };
 

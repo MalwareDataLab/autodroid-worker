@@ -25,7 +25,9 @@ class Api {
     });
 
     this.client.interceptors.request.use(async config => {
-      const auth = await this.context.authentication.handleAuthentication();
+      const auth = await this.context.authentication.refreshAuthentication({
+        forceAccessTokenUpdate: true,
+      });
 
       Object.assign(config.headers, {
         Authorization: `Bearer ${auth.access_token}`,

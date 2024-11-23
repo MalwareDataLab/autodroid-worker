@@ -52,8 +52,9 @@ export class ConfigurationManagerService<
   }
 
   private sanitizeData(data: D): D {
+    let result = data;
     if (this.defaultConfiguration)
-      return Object.entries(
+      result = Object.entries(
         this.defaultConfiguration as Record<string, any>,
       ).reduce(
         (acc, [key, defaultValue]) => {
@@ -62,7 +63,25 @@ export class ConfigurationManagerService<
         },
         {} as Record<string, any>,
       ) as D;
-    return data;
+
+    result = Object.entries(result as Record<string, any>).reduce(
+      (acc, [key, value]) => {
+        if (
+          value === undefined ||
+          value === "undefined" ||
+          value === null ||
+          value === "null"
+        ) {
+          acc[key] = null;
+        } else {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {} as Record<string, any>,
+    ) as D;
+
+    return result;
   }
 
   private setupInitialData() {
