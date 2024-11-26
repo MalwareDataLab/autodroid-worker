@@ -20,6 +20,7 @@
 - [✨ Visão Geral do Projeto](#overview)
 - [⛏️ Tecnologias Utilizadas](#built_using)
 - [📡 Ambiente do Servidor](#server_environment)
+- [🚩 Antes de começar](#before_start)
 - [🏁 Primeiros Passos](#getting_started)
 - [🚀 Deployment](#deployment)
 - [🔃 Atualizando](#updating)
@@ -84,7 +85,7 @@ O Worker está inserido no contexto do projeto AutoDroid, que é uma aplicação
 ## 📡 Ambiente do Servidor <a name = "server_environment"></a>
 
 - Sistema operacional Linux (por exemplo, Ubuntu, Debian e outros...) (MacOS/Windows é experimental)
-- Virtualização habilitada na BIOS
+- Virtualização habilitada no BIOS
 - Mínimo de 4GB de RAM
 - Mínimo de 10GB de espaço livre em disco, dependendo dos "processadores" disponíveis (para arquivos, resultados de processamento, banco de dados e imagens Docker)
 - [Git](https://git-scm.com/downloads) instalado
@@ -227,7 +228,7 @@ Se você estiver enfrentando alguns erros antes da inicialização da aplicaçã
 
 - Verifique se a máquina atende aos [requisitos](#server_environment).
 - Verifique se todos os passos especificados em [antes de começar](#before_start) foram completados, refaça-os se necessário.
-- Verifique se seu usário possui permissões de uso ao Docker, executando o comando `docker run --rm hello-world:latest`.
+- Verifique se seu usuário possui permissões de uso ao Docker, executando o comando `docker run --rm hello-world:latest`.
 - Realize os processos de pós-instalação do Docker, conforme [documentação oficial](https://docs.docker.com/engine/install/linux-postinstall/).
 
 ### Limpando o ambiente do Docker
