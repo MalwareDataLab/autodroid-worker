@@ -11,8 +11,8 @@ const getSystemEnvironment = () => {
   const env = getEnvConfig();
 
   if (env.isTestEnv) return "test";
-  if (env.NODE_ENV === "development") return "development";
   if (fsSync.existsSync("/.dockerenv")) return "container";
+  if (env.NODE_ENV === "development") return "development";
 
   const platform = os.platform();
 
