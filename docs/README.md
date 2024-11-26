@@ -18,9 +18,7 @@
 
 - [📖 Sobre](#about)
 - [✨ Visão Geral do Projeto](#overview)
-- [🏦 Arquitetura](#architecture)
 - [⛏️ Tecnologias Utilizadas](#built_using)
-- [💻 Ambiente do Usuário](#user_environment)
 - [📡 Ambiente do Servidor](#server_environment)
 - [🏁 Primeiros Passos](#getting_started)
 - [🚀 Deployment](#deployment)
@@ -83,6 +81,15 @@ O Worker está inserido no contexto do projeto AutoDroid, que é uma aplicação
 - [Prettier](https://prettier.io/) - Formatador de código
 - [Semver](https://semver.org/) - Versionamento semântico
 
+## 📡 Ambiente do Servidor <a name = "server_environment"></a>
+
+- Sistema operacional Linux (por exemplo, Ubuntu, Debian e outros...) (MacOS/Windows é experimental)
+- Virtualização habilitada na BIOS
+- Mínimo de 4GB de RAM
+- Mínimo de 10GB de espaço livre em disco, dependendo dos "processadores" disponíveis (para arquivos, resultados de processamento, banco de dados e imagens Docker)
+- [Git](https://git-scm.com/downloads) instalado
+- [Docker](https://docs.docker.com/get-docker/) instalado
+
 ## 🚩 Antes de começar <a name = "before_start"></a>
 
 Crie a instância do (AutoDroid API Gateway) conforme especificado no repositório principal [AutoDroid API](https://github.com/MalwareDataLab/autodroid-api).
@@ -132,8 +139,6 @@ git pull
 
 Introduza a variável de ambiente `REGISTRATION_TOKEN` no arquivo `.docker-compose.dev.yml` na raiz do projeto, com o valor obtido em [antes de começar](#before_start).
 
-```bash
-
 Inicie o projeto:
 
 ```bash
@@ -153,6 +158,14 @@ Instale as dependências do projeto:
 ```bash
 yarn install
 ```
+
+Execute a instância de desenvolvimento utilizando:
+
+```bash
+yarn dev -e development -u http://localhost:3333 -t <REGISTRATION_TOKEN>
+```
+
+O Worker estará disponível para receber trabalhos.
 
 ## 🚀 Deployment <a name = "deployment"></a>
 
