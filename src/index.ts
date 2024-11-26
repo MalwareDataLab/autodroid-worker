@@ -53,7 +53,7 @@ const argv = yargs(hideBin(process.argv))
 
 const config = {
   REGISTRATION_TOKEN: argv.token || process.env.REGISTRATION_TOKEN,
-  NODE_ENV: argv.env || process.env.NODE_ENV || "development",
+  NODE_ENV: argv.env || process.env.NODE_ENV || "production",
   DEBUG: String(argv.debug || process.env.DEBUG) === "true" ? "true" : "false",
   API_BASE_URL:
     argv.url || process.env.API_BASE_URL || "https://mdl-api.unihacker.club",
