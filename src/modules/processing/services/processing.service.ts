@@ -42,14 +42,7 @@ import {
   PROCESSING_STATUS,
 } from "../types/processing.types";
 
-const retry = retryExecution({
-  retries: 10,
-  factor: 2,
-  minTimeout: 1000,
-  maxTimeout: 1000 * 60,
-  forever: false,
-  randomize: true,
-});
+const retry = retryExecution();
 
 class ProcessingService {
   private readonly docker: Docker;
@@ -330,8 +323,8 @@ class ProcessingService {
       `processing/${processingId}/${processingId}`,
     ) as IProcessing["configuration"];
 
-    const processing = await this.context.api.client.get(
-      `/worker/processing/${processingId}`,
+    const processing = await retry(() =>
+      this.context.api.client.get(`/worker/processing/${processingId}`),
     );
 
     const data = processing.data as IProcessing["data"];
@@ -481,11 +474,11 @@ class ProcessingService {
   }
 
   private async processExecution(processingId: string) {
-    const processing = await this.getProcessing(processingId);
-
-    await this.updateProcessingFilePermissions(processing);
-
     try {
+      const processing = await this.getProcessing(processingId);
+
+      await this.updateProcessingFilePermissions(processing);
+
       const containerName = this.generateContainerName(processingId);
 
       const container = await this.getProcessingContainer({ processingId });
@@ -499,8 +492,10 @@ class ProcessingService {
       const containerInfo = await container.inspect();
 
       if (containerInfo.State.Running) {
-        await this.context.api.client.post(
-          `/worker/processing/${processingId}/progress`,
+        await retry(() =>
+          this.context.api.client.post(
+            `/worker/processing/${processingId}/progress`,
+          ),
         );
       } else {
         const succeeded = containerInfo.State.ExitCode === 0;
@@ -592,9 +587,11 @@ class ProcessingService {
       return processing.data.result_file.upload_url;
 
     try {
-      const { data } = await this.context.api.client.post(
-        `/worker/processing/${processing.data.id}/${kind}/generate_upload`,
-        fileData,
+      const { data } = await retry(() =>
+        this.context.api.client.post(
+          `/worker/processing/${processing.data.id}/${kind}/generate_upload`,
+          fileData,
+        ),
       );
 
       if (!data.upload_url)
@@ -663,8 +660,10 @@ class ProcessingService {
         },
       });
 
-      await this.context.api.client.post(
-        `/worker/processing/${processing.data.id}/result_file/uploaded`,
+      await retry(() =>
+        this.context.api.client.post(
+          `/worker/processing/${processing.data.id}/result_file/uploaded`,
+        ),
       );
 
       logger.info(
@@ -688,8 +687,10 @@ class ProcessingService {
         },
       });
 
-      await this.context.api.client.post(
-        `/worker/processing/${processing.data.id}/metrics_file/uploaded`,
+      await retry(() =>
+        this.context.api.client.post(
+          `/worker/processing/${processing.data.id}/metrics_file/uploaded`,
+        ),
       );
 
       logger.info(
@@ -827,19 +828,24 @@ class ProcessingService {
   }
 
   private async process(): Promise<void> {
-    if (this.context.webSocketClient.getIsConnected()) {
-      const processingIds = await this.getCurrentProcessingIds();
+    try {
+      if (this.context.webSocketClient.getIsConnected()) {
+        const processingIds = await this.getCurrentProcessingIds();
 
-      await this.reportStatus(processingIds);
+        await this.reportStatus(processingIds);
 
-      await processingIds.reduce<Promise<any>>((promise, processingId) => {
-        return promise.then(async () => {
-          return this.processExecution(processingId);
-        });
-      }, Promise.resolve());
+        await processingIds.reduce<Promise<any>>((promise, processingId) => {
+          return promise.then(async () => {
+            return this.processExecution(processingId);
+          });
+        }, Promise.resolve());
+      }
+
+      this.startProcessingInterval();
+    } catch (error) {
+      logger.error(`❌ Fail to process items. ${getErrorMessage(error)}`);
+      this.startProcessingInterval();
     }
-
-    this.startProcessingInterval();
   }
 }
 

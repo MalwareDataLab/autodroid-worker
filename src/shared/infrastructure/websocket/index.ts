@@ -3,10 +3,13 @@ import { io } from "socket.io-client";
 // Util import
 import { logger } from "@shared/utils/logger";
 import { executeAction } from "@shared/utils/executeAction.util";
+import { retryExecution } from "@shared/utils/retryExecution.util";
 
 // Type import
 import { AppContext } from "@shared/types/appContext.type";
 import { WebsocketClient } from "./types";
+
+const retry = retryExecution();
 
 class WebSocketApp {
   public socket: WebsocketClient;
@@ -50,10 +53,12 @@ class WebSocketApp {
 
   private async handleConnectionError(): Promise<void> {
     try {
-      await this.context.authentication.refreshAuthentication({
-        forceAccessTokenUpdate: true,
+      await retry(async () => {
+        await this.context.authentication.refreshAuthentication({
+          forceAccessTokenUpdate: true,
+        });
+        await this.init();
       });
-      await this.init();
     } catch (error) {
       logger.error(
         `❌ Error while refreshing access token during websocket connection opening. Unable to continue ${error}`,
