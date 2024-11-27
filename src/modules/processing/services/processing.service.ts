@@ -17,6 +17,7 @@ import { WorkerError } from "@shared/errors/WorkerError";
 import { getEnvConfig } from "@config/env";
 
 // Util import
+import { retryExecution } from "@shared/utils/retryExecution.util";
 import { logger } from "@shared/utils/logger";
 import { sleep } from "@shared/utils/sleep.util";
 import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
@@ -40,6 +41,15 @@ import {
   IProcessingFileData,
   PROCESSING_STATUS,
 } from "../types/processing.types";
+
+const retry = retryExecution({
+  retries: 10,
+  factor: 2,
+  minTimeout: 1000,
+  maxTimeout: 1000 * 60,
+  forever: false,
+  randomize: true,
+});
 
 class ProcessingService {
   private readonly docker: Docker;
@@ -225,9 +235,9 @@ class ProcessingService {
       const processing = await this.getProcessing(processingId);
 
       const { processor } = processing.data;
-      await this.pullImage(processor.image_tag);
+      await retry(() => this.pullImage(processor.image_tag));
 
-      await this.fetchDatasetFile(processing);
+      await retry(() => this.fetchDatasetFile(processing));
 
       const params = [
         {
@@ -701,8 +711,10 @@ class ProcessingService {
     if (!processingId) return;
 
     try {
-      await this.context.api.client.post(
-        `/worker/processing/${processingId}/success`,
+      await retry(() =>
+        this.context.api.client.post(
+          `/worker/processing/${processingId}/success`,
+        ),
       );
 
       await this.cleanup({
@@ -748,9 +760,11 @@ class ProcessingService {
         processingId,
       });
 
-      await this.context.api.client.post(
-        `/worker/processing/${processingId}/failure`,
-        { reason: reason ? String(reason) : null },
+      await retry(() =>
+        this.context.api.client.post(
+          `/worker/processing/${processingId}/failure`,
+          { reason: reason ? String(reason) : null },
+        ),
       );
 
       logger.info(`❌ Processing id ${processingId} failed. ${reason}`);

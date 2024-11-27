@@ -13,8 +13,10 @@ build
 temp
 dist
 
-test/manual/mocks
-test/outputs
+!test/
+!test/**
+test/manual/**
+test/outputs/**
 
 translation.missing.json
 
