@@ -5,9 +5,12 @@ import { getApiConfig, IApiConfig } from "@config/api";
 
 // Util import
 import { logger } from "@shared/utils/logger";
+import { retryExecution } from "@shared/utils/retryExecution.util";
 
 // Type import
 import { AppContext } from "@shared/types/appContext.type";
+
+const retry = retryExecution();
 
 class Api {
   private readonly context: AppContext;
@@ -29,12 +32,14 @@ class Api {
 
     this.client.interceptors.request.use(async config => {
       try {
-        const auth = await this.context.authentication.refreshAuthentication({
-          forceAccessTokenUpdate: true,
-        });
+        await retry(async () => {
+          const auth = await this.context.authentication.refreshAuthentication({
+            forceAccessTokenUpdate: true,
+          });
 
-        Object.assign(config.headers, {
-          Authorization: `Bearer ${auth.access_token}`,
+          Object.assign(config.headers, {
+            Authorization: `Bearer ${auth.access_token}`,
+          });
         });
       } catch (error) {
         logger.error(
