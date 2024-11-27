@@ -3,13 +3,10 @@ import { io } from "socket.io-client";
 // Util import
 import { logger } from "@shared/utils/logger";
 import { executeAction } from "@shared/utils/executeAction.util";
-import { retryExecution } from "@shared/utils/retryExecution.util";
 
 // Type import
 import { AppContext } from "@shared/types/appContext.type";
 import { WebsocketClient } from "./types";
-
-const retry = retryExecution();
 
 class WebSocketApp {
   public socket: WebsocketClient;
@@ -53,12 +50,10 @@ class WebSocketApp {
 
   private async handleConnectionError(): Promise<void> {
     try {
-      await retry(async () => {
-        await this.context.authentication.refreshAuthentication({
-          forceAccessTokenUpdate: true,
-        });
-        await this.init();
+      await this.context.authentication.refreshAuthentication({
+        forceAccessTokenUpdate: true,
       });
+      await this.init();
     } catch (error) {
       logger.error(
         `❌ Error while refreshing access token during websocket connection opening. Unable to continue ${error}`,
@@ -84,11 +79,6 @@ class WebSocketApp {
       const onError = (error: any) => {
         stopListeners();
         this.disconnect();
-        if (
-          !!error.message &&
-          error.message.toLowerCase().includes("unauthorized")
-        )
-          this.handleConnectionError();
         reject(error);
       };
 
@@ -124,8 +114,10 @@ class WebSocketApp {
     this.socket.on("connect_error", err => {
       logger.error(`❌ Websocket connection error due ${err.message}`);
 
-      if (!!err.message && err.message.toLowerCase().includes("unauthorized"))
-        logger.error("❌ Unauthorized access.");
+      if (!!err.message && err.message.toLowerCase().includes("unauthorized")) {
+        logger.error("❌ Unauthorized access. Trying to refresh.");
+        this.handleConnectionError();
+      }
     });
 
     this.socket.io.on("reconnect_attempt", () => {
