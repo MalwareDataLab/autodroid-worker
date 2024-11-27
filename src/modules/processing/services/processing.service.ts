@@ -483,11 +483,14 @@ class ProcessingService {
 
       const container = await this.getProcessingContainer({ processingId });
 
-      if (!container)
+      if (!container) {
+        if (processing.data.status === PROCESSING_STATUS.SUCCEEDED) return;
+
         throw new WorkerError({
           key: "@processing_service_process_execution/MISSING_CONTAINER",
           message: `Unable to find container ${containerName}.`,
         });
+      }
 
       const containerInfo = await container.inspect();
 
