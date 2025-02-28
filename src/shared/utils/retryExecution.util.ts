@@ -4,23 +4,21 @@ import asyncRetry, { Options } from "async-retry";
 import { logger } from "./logger";
 
 const retryExecution =
-  (
-    options: Options = {
+  (overrides?: Options) =>
+  async <T>(name: string, fn: () => Promise<T>) =>
+    asyncRetry(fn, {
       retries: 10,
       factor: 2,
       minTimeout: 1000,
-      maxTimeout: 1000 * 60 * 5, // 5 minutes
+      maxTimeout: 1000 * 60 * 3, // 3 minutes
       forever: false,
       randomize: true,
+      ...overrides,
       onRetry(e: any, attempt) {
         logger.error(
-          `🔃 Retrying ${attempt} attempt due to an error. ${e?.message || ""}`,
+          `🔃 Retrying ${name} ${attempt} attempt due to an error. ${e?.message || ""} ${e?.response?.data?.code} ${e?.response?.data?.message} ${e?.response?.data?.error}`,
         );
       },
-    },
-  ) =>
-  async <T>(fn: () => Promise<T>) => {
-    return asyncRetry(fn, options);
-  };
+    });
 
 export { retryExecution };

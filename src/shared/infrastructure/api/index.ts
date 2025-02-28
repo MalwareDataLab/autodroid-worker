@@ -32,7 +32,7 @@ class Api {
 
     this.client.interceptors.request.use(async config => {
       try {
-        await retry(async () => {
+        await retry("@interceptor/REFRESH_AUTH", async () => {
           const auth = await this.context.authentication.refreshAuthentication({
             forceAccessTokenUpdate: true,
           });

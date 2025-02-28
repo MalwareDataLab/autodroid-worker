@@ -3,7 +3,7 @@ import { defaultExclude, defineWorkspace } from "vitest/config";
 // eslint-disable-next-line import/no-default-export
 export default defineWorkspace([
   {
-    extends: "./vitest.config.ts",
+    extends: "./vitest.config.mts",
     test: {
       name: "e2e",
       include: ["**/*.e2e.test.ts"],
@@ -16,7 +16,7 @@ export default defineWorkspace([
     },
   },
   {
-    extends: "./vitest.config.ts",
+    extends: "./vitest.config.mts",
     test: {
       name: "integration",
       include: ["**/*.test.ts"],
@@ -26,7 +26,7 @@ export default defineWorkspace([
     },
   },
   {
-    extends: "./vitest.config.ts",
+    extends: "./vitest.config.mts",
     test: {
       name: "unit",
       include: ["**/*.spec.ts"],

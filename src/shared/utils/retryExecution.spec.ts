@@ -24,7 +24,7 @@ describe("Util: retryExecution", () => {
       return "Success";
     });
 
-    await retry(() => fn()).then(result => {
+    await retry("@test/RETRY", () => fn()).then(result => {
       expect(result).toBe("Success");
       expect(fn).toHaveBeenCalledTimes(5);
     });
