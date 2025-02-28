@@ -73,21 +73,32 @@ class ProcessingService {
     return `autodroid_worker_${processingId}`;
   }
 
-  private async getProcessingPath(processingId: string) {
+  private async checkDefaultVolume() {
     const environment = getSystemEnvironment();
 
     if (environment === "container") {
-      const volumes = await this.docker.listVolumes();
-      const volumeData =
-        volumes.Volumes.find(vol => vol.Name === this.volumeName) || null;
+      try {
+        const volumes = await this.docker.listVolumes();
+        const volumeData =
+          volumes.Volumes.find(vol => vol.Name === this.volumeName) || null;
 
-      if (!volumeData)
-        throw new WorkerError({
-          key: "@processing_service_get_processing_path/MISSING_VOLUME",
-          message: "Missing volume for processing.",
-        });
+        if (!volumeData) {
+          throw new WorkerError({
+            key: "@processing_service_get_processing_path/MISSING_VOLUME",
+            message: "Missing volume for processing.",
+            debug: { volumeName: this.volumeName },
+          });
+        }
+      } catch (error) {
+        logger.error(
+          `❌ Fail to check default volume. ${getErrorMessage(error)}`,
+        );
+        process.exit(1);
+      }
     }
+  }
 
+  private async getProcessingPath(processingId: string) {
     const folderName = "processing";
 
     return {
@@ -99,7 +110,7 @@ class ProcessingService {
   public async init(): Promise<void> {
     await sleep(1000);
     await this.docker.ping();
-    this.startProcessingInterval();
+    await this.checkDefaultVolume();
 
     const dockerVersion = await this.docker.version();
 
@@ -118,6 +129,8 @@ class ProcessingService {
       const processingIds = await this.getCurrentProcessingIds();
       await this.reportStatus(processingIds);
     });
+
+    this.startProcessingInterval();
   }
 
   private async imageExists(image: string): Promise<boolean> {
@@ -406,6 +419,8 @@ class ProcessingService {
 
       const container = await this.getProcessingContainer({ processingId });
       if (container) await container.remove({ force: true });
+
+      await this.checkDefaultVolume();
     } catch (error) {
       logger.error(
         `❌ Fail to cleanup processing id ${processingId}. ${getErrorMessage(error)}`,
