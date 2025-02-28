@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.1.1...v0.2.0) (2025-02-28)
+
+
+### Features
+
+* add more attempts and better debug ([8f2634a](https://github.com/MalwareDataLab/autodroid-worker/commit/8f2634a26200439580c547a9201a6072504ccfd7))
+
 ## [0.1.1](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.1.0...v0.1.1) (2025-02-28)
 
 
