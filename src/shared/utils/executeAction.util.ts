@@ -10,7 +10,7 @@ import { logger } from "@shared/utils/logger";
 
 interface IParams {
   actionName?: string;
-  action: () => Promise<any>;
+  action: (params: { attempt: number }) => Promise<any>;
   attempt?: number;
   maxRetries?: number;
   retryDelay?: number;
@@ -27,7 +27,7 @@ const executeAction = async (params: IParams): Promise<any> => {
   } = params;
 
   try {
-    const result = await action();
+    const result = await action({ attempt });
     if (logging && !getEnvConfig().isTestEnv)
       logger.info(
         attempt > 1
