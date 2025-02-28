@@ -19,11 +19,14 @@ import { ConfigurationManagerService } from "@modules/configuration/services/con
 import { logger } from "@shared/utils/logger";
 import { DateHelpers } from "@shared/utils/dateHelper.util";
 import { executeAction } from "@shared/utils/executeAction.util";
+import { retryExecution } from "@shared/utils/retryExecution.util";
 import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
 import { getSystemStaticInfo } from "@shared/utils/getSystemStaticInfo.util";
 
 // Type import
 import type { AppContext } from "@shared/types/appContext.type";
+
+const retry = retryExecution();
 
 class AuthenticationService {
   public readonly initialization: Promise<void>;
@@ -112,11 +115,13 @@ class AuthenticationService {
 
   private async getCurrentData() {
     try {
-      const data = await this.apiClient.get("/", {
-        headers: {
-          Authorization: `Bearer ${this.getConfig().access_token}`,
-        },
-      });
+      const data = await retry("@authentication/GET_CURRENT_DATA", () =>
+        this.apiClient.get("/", {
+          headers: {
+            Authorization: `Bearer ${this.getConfig().access_token}`,
+          },
+        }),
+      );
 
       return data;
     } catch (error) {
@@ -313,7 +318,9 @@ class AuthenticationService {
     const params = await this.validateAndGetRequiredConfigurationData();
 
     try {
-      const { data } = await this.apiClient.post("/access-token", params);
+      const { data } = await retry("@authentication/UPDATE_ACCESS_TOKEN", () =>
+        this.apiClient.post("/access-token", params),
+      );
 
       await this.config.setConfig({
         access_token: data.access_token,

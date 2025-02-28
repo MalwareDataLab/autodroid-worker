@@ -1,0 +1,81 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+      - qa
+
+  pull_request:
+    branches:
+      - main
+      - qa
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: 'yarn'
+
+      - name: Bootstrap
+        run: ./scripts/bootstrap.sh
+
+      - name: Check types
+        run: yarn lint
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: 'yarn'
+
+      - name: Bootstrap
+        run: ./scripts/bootstrap.sh
+
+      - name: Run build
+        run: yarn build
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: 'yarn'
+
+      - name: Bootstrap
+        run: ./scripts/bootstrap.sh
+
+      - name: Parse secrets data dotenv syntax as .env file
+        id: parse-secrets
+        uses: luizfelipelaviola/parse-plain-dotenv@v1
+        with:
+          data: ${{ secrets.TEST_ENV }}
+          parse-env: false
+          write-env-file: true
+          env-file-path: .env.test
+
+      - name: Run tests
+        run: yarn test --bail 1

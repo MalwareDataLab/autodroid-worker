@@ -23,6 +23,7 @@ import {
 } from "@shared/utils/getStorageBasePath.util";
 import { logger } from "@shared/utils/logger";
 import { sleep } from "@shared/utils/sleep.util";
+import { DateHelpers } from "@shared/utils/dateHelper.util";
 import { retryExecution } from "@shared/utils/retryExecution.util";
 import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
 import { getSystemDynamicInfo } from "@shared/utils/getSystemDynamicInfo.util";
@@ -218,9 +219,58 @@ class ProcessingService {
       processing.system_input_dir,
       processing.data.dataset.file.filename,
     );
+
+    if (fsSync.existsSync(datasetPath)) await fsPromises.unlink(datasetPath);
+
     const datasetStream = fsSync.createWriteStream(datasetPath);
+
+    const updatedProcessing = await retry(
+      "@processing/GET_PROCESSING_FOR_DATASET_FILE",
+      () =>
+        this.context.api.client.get<IProcessing["data"]>(
+          `/worker/processing/${processing.data.id}`,
+        ),
+    );
+
+    if (!updatedProcessing.data.dataset.file.allow_public_access)
+      WorkerError.make({
+        key: "@processing_service_fetch_dataset_file/NO_PUBLIC_ACCESS",
+        message: `🟡 Dataset ${updatedProcessing.data.id} file without public access on processing ${updatedProcessing.data.id}`,
+        debug: {
+          processing,
+          updatedProcessing,
+        },
+      });
+
+    if (
+      !updatedProcessing.data.dataset.file.public_url ||
+      !updatedProcessing.data.dataset.file.public_url_expires_at
+    )
+      WorkerError.make({
+        key: "@processing_service_fetch_dataset_file/NO_PUBLIC_ACCESS_DATA",
+        message: `🟡 Dataset ${updatedProcessing.data.id} file without public access data on processing ${updatedProcessing.data.id}`,
+        debug: {
+          processing,
+          updatedProcessing,
+        },
+      });
+
+    if (
+      DateHelpers.now().isAfter(
+        updatedProcessing.data.dataset.file.public_url_expires_at,
+      )
+    )
+      WorkerError.make({
+        key: "@processing_service_fetch_dataset_file/EXPIRED_DATASET_FILE",
+        message: `🟡 Dataset ${updatedProcessing.data.id} file public access expired on processing ${updatedProcessing.data.id}`,
+        debug: {
+          processing,
+          updatedProcessing,
+        },
+      });
+
     const datasetResponse = await axios.get(
-      processing.data.dataset.file.public_url!,
+      (updatedProcessing.data as IProcessing["data"]).dataset.file.public_url!,
       { responseType: "stream" },
     );
     datasetResponse.data.pipe(datasetStream);
@@ -230,7 +280,7 @@ class ProcessingService {
     if (!fileExists)
       throw new WorkerError({
         key: "@processing_service_fetch_dataset_file/MISSING_FILE",
-        message: `Fail to download dataset for processing id ${processing.data.id}. The public URL is ${processing.data.dataset.file.public_url}.`,
+        message: `Fail to download dataset for processing id ${updatedProcessing.data.id}. The public URL is ${updatedProcessing.data.dataset.file.public_url}.`,
       });
 
     return datasetPath;
@@ -241,9 +291,13 @@ class ProcessingService {
       const processing = await this.getProcessing(processingId);
 
       const { processor } = processing.data;
-      await retry(() => this.pullImage(processor.image_tag));
+      await retry("@processing/PULL_DOCKER_IMAGE", () =>
+        this.pullImage(processor.image_tag),
+      );
 
-      await retry(() => this.fetchDatasetFile(processing));
+      await retry("@processing/FETCH_DATASET_FILE", () =>
+        this.fetchDatasetFile(processing),
+      );
 
       const params = [
         {
@@ -336,7 +390,7 @@ class ProcessingService {
       `processing/${processingId}/${processingId}`,
     ) as IProcessing["configuration"];
 
-    const processing = await retry(() =>
+    const processing = await retry("@processing/GET_PROCESSING", () =>
       this.context.api.client.get(`/worker/processing/${processingId}`),
     );
 
@@ -510,7 +564,7 @@ class ProcessingService {
       const containerInfo = await container.inspect();
 
       if (containerInfo.State.Running) {
-        await retry(() =>
+        await retry("@processing/REPORT_PROCESSING_PROGRESS", () =>
           this.context.api.client.post(
             `/worker/processing/${processingId}/progress`,
           ),
@@ -605,7 +659,7 @@ class ProcessingService {
       return processing.data.result_file.upload_url;
 
     try {
-      const { data } = await retry(() =>
+      const { data } = await retry("@processing/GENERATE_UPLOAD", () =>
         this.context.api.client.post(
           `/worker/processing/${processing.data.id}/${kind}/generate_upload`,
           fileData,
@@ -678,7 +732,7 @@ class ProcessingService {
         },
       });
 
-      await retry(() =>
+      await retry("@processing/REPORT_RESULT_FILE_UPLOADED", () =>
         this.context.api.client.post(
           `/worker/processing/${processing.data.id}/result_file/uploaded`,
         ),
@@ -705,7 +759,7 @@ class ProcessingService {
         },
       });
 
-      await retry(() =>
+      await retry("@processing/REPORT_METRICS_FILE_UPLOADED", () =>
         this.context.api.client.post(
           `/worker/processing/${processing.data.id}/metrics_file/uploaded`,
         ),
@@ -730,7 +784,7 @@ class ProcessingService {
     if (!processingId) return;
 
     try {
-      await retry(() =>
+      await retry("@processing/REPORT_PROCESSING_SUCCESS", () =>
         this.context.api.client.post(
           `/worker/processing/${processingId}/success`,
         ),
@@ -779,7 +833,7 @@ class ProcessingService {
         processingId,
       });
 
-      await retry(() =>
+      await retry("@processing/REPORT_PROCESSING_FAILURE", () =>
         this.context.api.client.post(
           `/worker/processing/${processingId}/failure`,
           { reason: reason ? String(reason) : null },
