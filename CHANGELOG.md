@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.1.0...v0.1.1) (2025-02-28)
+
+
+### Bug Fixes
+
+* worker default volume check workflow ([af97c14](https://github.com/MalwareDataLab/autodroid-worker/commit/af97c1432d039ef7d289cfcb5c2c9a6c570727f4))
+
 ## [0.1.0](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.0.1...v0.1.0) (2025-02-28)
 
 
