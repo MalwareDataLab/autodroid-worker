@@ -17,14 +17,16 @@ import { WorkerError } from "@shared/errors/WorkerError";
 import { getEnvConfig } from "@config/env";
 
 // Util import
-import { retryExecution } from "@shared/utils/retryExecution.util";
-import { logger } from "@shared/utils/logger";
-import { sleep } from "@shared/utils/sleep.util";
-import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
 import {
   getStorageBasePath,
   getStorageBaseFolder,
 } from "@shared/utils/getStorageBasePath.util";
+import { logger } from "@shared/utils/logger";
+import { sleep } from "@shared/utils/sleep.util";
+import { retryExecution } from "@shared/utils/retryExecution.util";
+import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
+import { getSystemDynamicInfo } from "@shared/utils/getSystemDynamicInfo.util";
+import { getSystemEnvironment } from "@shared/utils/getSystemEnvironment.util";
 import { promisifyWriteStream } from "@shared/utils/promisifyWriteStream.util";
 
 // Service import
@@ -33,8 +35,6 @@ import { ConfigurationManagerService } from "@modules/configuration/services/con
 // Type import
 import { AppContext } from "@shared/types/appContext.type";
 import { WORKER_STATUS } from "@shared/infrastructure/websocket/socket.types";
-import { getSystemDynamicInfo } from "@shared/utils/getSystemDynamicInfo.util";
-import { getSystemEnvironment } from "@shared/utils/getSystemEnvironment.util";
 import {
   IProcessing,
   OutputFileKind,

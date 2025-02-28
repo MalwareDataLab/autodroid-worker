@@ -52,7 +52,7 @@ class AuthenticationService {
     });
 
     this.initialization = executeAction({
-      action: () => this.init(),
+      action: ({ attempt }) => this.init(attempt),
       actionName: "Authentication initialization",
       retryDelay: 1 * 1000,
       maxRetries: 5,
@@ -60,13 +60,14 @@ class AuthenticationService {
     });
   }
 
-  private async init() {
+  private async init(attempt = 1) {
     const { version } = getEnvConfig().APP_INFO;
 
     await this.handleInternalId();
     await this.handleSignature();
     await this.refreshAuthentication({
       forceAccessTokenUpdate: true,
+      forceRegistration: attempt >= 5,
     });
 
     logger.info(`🆗 Worker v${version} id ${this.getConfig().worker_id}`);
@@ -80,6 +81,7 @@ class AuthenticationService {
     params: {
       forceRefreshTokenUpdate?: boolean;
       forceAccessTokenUpdate?: boolean;
+      forceRegistration?: boolean;
     } = {},
   ) {
     const config = this.getConfig();
@@ -87,6 +89,7 @@ class AuthenticationService {
     if (
       !config.registration_token ||
       !config.refresh_token ||
+      params.forceRegistration ||
       (!!this.params.registration_token &&
         config.registration_token !== this.params.registration_token)
     )

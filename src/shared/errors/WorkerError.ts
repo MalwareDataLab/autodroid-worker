@@ -7,6 +7,7 @@ import { getEnvConfig } from "@config/env";
 // Util import
 import { logger } from "@shared/utils/logger";
 import { sanitizeErrorObject } from "@shared/utils/sanitizeErrorObject.util";
+import { Sentry } from "@shared/infrastructure/sentry";
 
 interface IWorkerError {
   key: string;
@@ -61,6 +62,8 @@ class WorkerError extends Error {
 
   private async register() {
     const envConfig = getEnvConfig();
+
+    Sentry.captureException(this);
 
     if (
       (!!this.debug || this.statusCode >= 500) &&
