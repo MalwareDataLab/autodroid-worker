@@ -18,3 +18,7 @@ export type ISocketWorkerStatusMessage = {
   processing_ids: string[];
   telemetry: Systeminformation.DynamicData;
 };
+
+export type ISocketWorkerProcessingAcquiredMessage = {
+  processing_id: string;
+};
