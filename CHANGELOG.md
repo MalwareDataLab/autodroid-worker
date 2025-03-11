@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.2.0...v0.3.0) (2025-03-11)
+
+
+### Features
+
+* add worker processing acquisition process ([97bd745](https://github.com/MalwareDataLab/autodroid-worker/commit/97bd7457d6a55cc6aebaa1d68b66248ff87ded96))
+
 ## [0.2.0](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.1.1...v0.2.0) (2025-02-28)
 
 
