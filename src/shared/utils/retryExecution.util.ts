@@ -16,7 +16,7 @@ const retryExecution =
       ...overrides,
       onRetry(e: any, attempt) {
         logger.error(
-          `🔃 Retrying ${name} ${attempt} attempt due to an error. ${e?.message || ""} ${e?.response?.data?.code} ${e?.response?.data?.message} ${e?.response?.data?.error}`,
+          `🔃 Retrying ${name} ${attempt} attempt due to an error. ${e?.message || ""} ${e?.response?.data?.code || "(no code)"} ${e?.response?.data?.message || "(no message)"} ${e?.response?.data?.error || "(no error context)"}`,
         );
       },
     });

@@ -134,6 +134,31 @@ class ProcessingService {
     this.startProcessingInterval();
   }
 
+  public async dispatchProcessing(processingId: string): Promise<void> {
+    logger.info(`🚀 Worker is about to process ${processingId}.`);
+
+    if (this.processTimeout) clearTimeout(this.processTimeout);
+    try {
+      await Promise.race([
+        this.currentProcess,
+        new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(
+              new Error(
+                `Processing ${processingId} timed out waiting for current processes to complete`,
+              ),
+            );
+          }, this.processDelay + 1000);
+        }),
+      ]);
+
+      if (this.processTimeout) clearTimeout(this.processTimeout);
+      this.currentProcess = this.startProcessing(processingId);
+    } catch (error: any) {
+      logger.info(`⏱️ Skipping processing ${processingId}: ${error.message}`);
+    }
+  }
+
   private async imageExists(image: string): Promise<boolean> {
     const existingImageList = await this.docker.listImages();
     return existingImageList.some(existingImage =>
@@ -195,16 +220,6 @@ class ProcessingService {
         message: `Unable to get container ${containerName}.`,
       });
     }
-  }
-
-  public async dispatchProcessing(processingId: string): Promise<void> {
-    logger.info(`🚀 Worker is about to process ${processingId}.`);
-
-    if (this.processTimeout) clearTimeout(this.processTimeout);
-    await this.currentProcess;
-    if (this.processTimeout) clearTimeout(this.processTimeout);
-    await sleep(this.processDelay);
-    this.currentProcess = this.startProcessing(processingId);
   }
 
   private async fetchDatasetFile(processing: IProcessing): Promise<string> {
@@ -289,6 +304,12 @@ class ProcessingService {
   private async startProcessing(processingId: string): Promise<void> {
     try {
       const processing = await this.getProcessing(processingId);
+
+      const workerId = this.context.authentication.getConfig().worker_id;
+      this.context.webSocketClient.socket.emit(`worker:processing-acquired`, {
+        processing_id: processingId,
+      });
+      logger.info(`🔒 Worker ${workerId} acquired processing ${processingId}`);
 
       const { processor } = processing.data;
       await retry("@processing/PULL_DOCKER_IMAGE", () =>
