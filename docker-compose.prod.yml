@@ -16,6 +16,7 @@ services:
     restart: always
 
   watchtower:
+    container_name: autodroid_watchtower
     image: containrrr/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -24,6 +25,7 @@ services:
 
 volumes:
   autodroid_worker_data:
+    name: autodroid_worker_data
     driver: local
     driver_opts:
       type: none

@@ -148,7 +148,7 @@ class ProcessingService {
                 `Processing ${processingId} timed out waiting for current processes to complete`,
               ),
             );
-          }, this.processDelay + 1000);
+          }, 15000);
         }),
       ]);
 

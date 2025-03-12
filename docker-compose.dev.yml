@@ -9,7 +9,7 @@ services:
       - NODE_ENV=development
       - DEBUG=false
       - API_BASE_URL=http://host.docker.internal:3333
-      - REGISTRATION_TOKEN=2aEWkAzu5jgkxPcfmtFyXfK04CKnrjTw
+      - REGISTRATION_TOKEN=
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - autodroid_worker_data:/usr/app/temp
@@ -17,6 +17,7 @@ services:
     network_mode: "host"
 
   watchtower:
+    container_name: autodroid_watchtower
     image: containrrr/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -25,6 +26,7 @@ services:
 
 volumes:
   autodroid_worker_data:
+    name: autodroid_worker_data
     driver: local
     driver_opts:
       type: none
