@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.3.0...v0.3.1) (2025-03-12)
+
+
+### Bug Fixes
+
+* raise job acquisition lock timeout ([3555bea](https://github.com/MalwareDataLab/autodroid-worker/commit/3555beabc8a42e41eaace2bc76e30b5a947e52c3))
+
 ## [0.3.0](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.2.0...v0.3.0) (2025-03-11)
 
 
