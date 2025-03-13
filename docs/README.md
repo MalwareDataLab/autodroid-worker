@@ -138,7 +138,7 @@ Atualize o repositório sempre, utilizando:
 git pull
 ```
 
-Introduza a variável de ambiente `REGISTRATION_TOKEN` no arquivo `.docker-compose.dev.yml` na raiz do projeto, com o valor obtido em [antes de começar](#before_start).
+Introduza a variável de ambiente `REGISTRATION_TOKEN` e um nome identificador `NAME` no arquivo `.docker-compose.dev.yml` na raiz do projeto, com o valor obtido em [antes de começar](#before_start).
 
 Inicie o projeto:
 
@@ -163,7 +163,7 @@ yarn install
 Execute a instância de desenvolvimento utilizando:
 
 ```bash
-yarn dev -e development -u http://localhost:3333 -t <REGISTRATION_TOKEN>
+yarn dev -e development -u http://localhost:3333 -t <REGISTRATION_TOKEN> -n <NAME>
 ```
 
 O Worker estará disponível para receber trabalhos.

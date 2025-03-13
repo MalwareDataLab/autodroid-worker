@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - NODE_ENV=production
+      - NAME=nameless-worker
       - DEBUG=false
       - API_BASE_URL=https://mdl-api.unihacker.club
       - REGISTRATION_TOKEN=

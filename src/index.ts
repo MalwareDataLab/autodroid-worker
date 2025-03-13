@@ -16,6 +16,11 @@ const argv = yargs(hideBin(process.argv))
     demandOption: false,
     description: "Authentication token for worker",
   })
+  .option("name", {
+    type: "string",
+    alias: "n",
+    description: "Name of the worker",
+  })
   .option("env", {
     type: "string",
     choices: ["development", "production"],
@@ -53,6 +58,7 @@ const argv = yargs(hideBin(process.argv))
 
 const config = {
   REGISTRATION_TOKEN: argv.token || process.env.REGISTRATION_TOKEN,
+  NAME: argv.name || process.env.NAME,
   NODE_ENV: argv.env || process.env.NODE_ENV || "production",
   DEBUG: String(argv.debug || process.env.DEBUG) === "true" ? "true" : "false",
   API_BASE_URL:
@@ -68,6 +74,7 @@ if (argv.set)
 
 const configSchema = z.object({
   REGISTRATION_TOKEN: z.string().optional(),
+  NAME: z.string(),
   NODE_ENV: z.enum(["development", "production"]),
   DEBUG: z.enum(["true", "false"]),
   API_BASE_URL: z.string().url(),
@@ -90,6 +97,7 @@ Object.entries(parsedConfig.data)
   });
 
 const worker = new Worker({
+  name: process.env.NAME,
   registration_token: process.env.REGISTRATION_TOKEN,
 });
 

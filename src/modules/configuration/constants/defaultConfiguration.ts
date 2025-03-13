@@ -15,6 +15,8 @@ export const defaultConfiguration = {
 
     access_token: null as string | null | undefined,
     access_token_expires_at: null as string | null | undefined,
+
+    name: null as string | null | undefined,
   },
   [CONFIGURATION.JOB]: {},
 

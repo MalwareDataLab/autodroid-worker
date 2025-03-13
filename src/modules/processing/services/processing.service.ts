@@ -894,6 +894,7 @@ class ProcessingService {
     const telemetry = await getSystemDynamicInfo();
 
     const { version } = getEnvConfig().APP_INFO;
+    const { name } = this.context.authentication.getConfig();
     const workerId = this.context.authentication.getConfig().worker_id;
 
     if (
@@ -913,6 +914,7 @@ class ProcessingService {
       this.processCount > 0 ? WORKER_STATUS.WORK : WORKER_STATUS.IDLE;
 
     this.context.webSocketClient.socket.emit("worker:status", {
+      name: name || "Unknown",
       status: this.status,
       version,
       processing_ids: processingIds,

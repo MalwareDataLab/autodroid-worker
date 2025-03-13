@@ -35,7 +35,11 @@ class AuthenticationService {
   private apiClient: Axios;
 
   constructor(
-    private params: { registration_token?: string | null; context: AppContext },
+    private params: {
+      name: string;
+      registration_token?: string | null;
+      context: AppContext;
+    },
   ) {
     const apiConfig = getApiConfig();
 
@@ -66,6 +70,7 @@ class AuthenticationService {
   private async init(attempt = 1) {
     const { version } = getEnvConfig().APP_INFO;
 
+    await this.config.setConfigValue("name", this.params.name);
     await this.handleInternalId();
     await this.handleSignature();
     await this.refreshAuthentication({
@@ -136,6 +141,12 @@ class AuthenticationService {
   private validateRequiredConfigurationData() {
     const config = this.getConfig();
 
+    if (!config.name || typeof config.name !== "string")
+      throw new WorkerError({
+        key: "@authentication_service_validate_required_configuration_data/MISSING_NAME",
+        message: "Name is missing.",
+      });
+
     if (!config.registration_token)
       throw new WorkerError({
         key: "@authentication_service_validate_required_configuration_data/MISSING_REGISTRATION_TOKEN",
@@ -178,6 +189,7 @@ class AuthenticationService {
 
   private async getRequiredConfigurationData() {
     const {
+      name,
       registration_token,
       internal_id,
       signature,
@@ -188,6 +200,7 @@ class AuthenticationService {
     const system_info = await getSystemStaticInfo();
 
     return {
+      name,
       system_info,
       registration_token,
       internal_id,
@@ -268,6 +281,7 @@ class AuthenticationService {
     try {
       const system_info = await getSystemStaticInfo();
       const { data } = await this.apiClient.post("/register", {
+        name: this.params.name,
         registration_token,
         internal_id: config.internal_id,
         signature: config.signature,
@@ -275,6 +289,7 @@ class AuthenticationService {
       });
 
       await this.config.setConfig({
+        name: this.params.name,
         worker_id: data.id,
         refresh_token: data.refresh_token,
         refresh_token_expires_at: data.refresh_token_expires_at,
