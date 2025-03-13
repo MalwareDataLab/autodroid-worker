@@ -27,6 +27,7 @@ class Worker {
 
   constructor(config: AppConfig) {
     this.authentication = new AuthenticationService({
+      name: config.name,
       registration_token: config.registration_token,
       context: this,
     });
