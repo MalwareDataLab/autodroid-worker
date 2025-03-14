@@ -1,3 +1,5 @@
+import "@shared/infrastructure/sentry";
+
 // Error import
 import { WorkerError } from "@shared/errors/WorkerError";
 

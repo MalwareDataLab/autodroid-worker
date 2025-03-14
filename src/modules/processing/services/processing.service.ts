@@ -70,8 +70,51 @@ class ProcessingService {
     );
   }
 
+  private getWorkerName() {
+    return this.context.authentication.getConfig().name;
+  }
+
   private generateContainerName(processingId: string) {
-    return `autodroid_worker_${processingId}`;
+    return `autodroid_worker_${this.getWorkerName()}_${processingId}`;
+  }
+
+  private getProcessesFolderName = () => {
+    return `processes-${this.getWorkerName()}`;
+  };
+
+  async cleanupOldCleanerContainers() {
+    const fiveMinutesAgo = Math.floor(Date.now() / 1000) - 5 * 60;
+    try {
+      const containers = await this.docker.listContainers({
+        all: true,
+        filters: `{"name": ["autodroid_worker_cleaner_"]}`,
+      });
+
+      const containerPromises = containers.map(async containerInfo => {
+        const container = this.docker.getContainer(containerInfo.Id);
+        const details = await container.inspect();
+
+        const createdTime = new Date(details.Created).getTime() / 1000;
+
+        if (createdTime < fiveMinutesAgo) {
+          logger.info(
+            `🧹 Removing old cleaner container: ${containerInfo.Names[0]}`,
+          );
+          await container.remove({ force: true });
+        }
+      });
+
+      await Promise.all(containerPromises);
+    } catch (error) {
+      WorkerError.make({
+        key: "@processing_service_cleanup_old_cleaner_containers/FAIL_TO_CLEANUP",
+        message: `Failed to cleanup old cleaner containers.`,
+        debug: { error },
+      });
+      logger.error(
+        `❌ Failed to cleanup old cleaner containers: ${getErrorMessage(error)}`,
+      );
+    }
   }
 
   private async checkDefaultVolume() {
@@ -100,7 +143,7 @@ class ProcessingService {
   }
 
   private async getProcessingPath(processingId: string) {
-    const folderName = "processing";
+    const folderName = this.getProcessesFolderName();
 
     return {
       system_path: path.join(getStorageBasePath(folderName), processingId),
@@ -151,6 +194,11 @@ class ProcessingService {
           }, 15000);
         }),
       ]);
+
+      const currentProcessingIds = await this.getCurrentProcessingIds();
+
+      if (currentProcessingIds.includes(processingId))
+        throw new Error("Processing already in progress");
 
       if (this.processTimeout) clearTimeout(this.processTimeout);
       this.currentProcess = this.startProcessing(processingId);
@@ -218,98 +266,111 @@ class ProcessingService {
       throw new WorkerError({
         key: "@processing_service/FAIL_TO_GET_CONTAINER",
         message: `Unable to get container ${containerName}.`,
+        debug: { processingId },
       });
     }
   }
 
   private async fetchDatasetFile(processing: IProcessing): Promise<string> {
-    const dirExists = fsSync.existsSync(processing.system_input_dir);
-    if (!dirExists)
-      throw new WorkerError({
-        key: "@processing_service_fetch_dataset_file/MISSING_DIRECTORY",
-        message: `Directory ${processing.system_input_dir} does not exist.`,
-      });
+    try {
+      const dirExists = fsSync.existsSync(processing.system_input_dir);
+      if (!dirExists)
+        throw new WorkerError({
+          key: "@processing_service_fetch_dataset_file/MISSING_DIRECTORY",
+          message: `Directory ${processing.system_input_dir} does not exist.`,
+        });
 
-    const datasetPath = path.join(
-      processing.system_input_dir,
-      processing.data.dataset.file.filename,
-    );
+      const datasetPath = path.join(
+        processing.system_input_dir,
+        processing.data.dataset.file.filename,
+      );
 
-    if (fsSync.existsSync(datasetPath)) await fsPromises.unlink(datasetPath);
+      if (fsSync.existsSync(datasetPath)) await fsPromises.unlink(datasetPath);
 
-    const datasetStream = fsSync.createWriteStream(datasetPath);
+      const datasetStream = fsSync.createWriteStream(datasetPath);
 
-    const updatedProcessing = await retry(
-      "@processing/GET_PROCESSING_FOR_DATASET_FILE",
-      () =>
-        this.context.api.client.get<IProcessing["data"]>(
-          `/worker/processing/${processing.data.id}`,
-        ),
-    );
+      const updatedProcessing = await retry(
+        "@processing/GET_PROCESSING_FOR_DATASET_FILE",
+        () =>
+          this.context.api.client.get<IProcessing["data"]>(
+            `/worker/processing/${processing.data.id}`,
+          ),
+      );
 
-    if (!updatedProcessing.data.dataset.file.allow_public_access)
-      WorkerError.make({
-        key: "@processing_service_fetch_dataset_file/NO_PUBLIC_ACCESS",
-        message: `🟡 Dataset ${updatedProcessing.data.id} file without public access on processing ${updatedProcessing.data.id}`,
-        debug: {
-          processing,
-          updatedProcessing,
-        },
-      });
+      if (!updatedProcessing.data.dataset.file.allow_public_access)
+        WorkerError.make({
+          key: "@processing_service_fetch_dataset_file/NO_PUBLIC_ACCESS",
+          message: `🟡 Dataset ${updatedProcessing.data.id} file without public access on processing ${updatedProcessing.data.id}`,
+          debug: {
+            processing,
+            updatedProcessing,
+          },
+        });
 
-    if (
-      !updatedProcessing.data.dataset.file.public_url ||
-      !updatedProcessing.data.dataset.file.public_url_expires_at
-    )
-      WorkerError.make({
-        key: "@processing_service_fetch_dataset_file/NO_PUBLIC_ACCESS_DATA",
-        message: `🟡 Dataset ${updatedProcessing.data.id} file without public access data on processing ${updatedProcessing.data.id}`,
-        debug: {
-          processing,
-          updatedProcessing,
-        },
-      });
-
-    if (
-      DateHelpers.now().isAfter(
-        updatedProcessing.data.dataset.file.public_url_expires_at,
+      if (
+        !updatedProcessing.data.dataset.file.public_url ||
+        !updatedProcessing.data.dataset.file.public_url_expires_at
       )
-    )
-      WorkerError.make({
-        key: "@processing_service_fetch_dataset_file/EXPIRED_DATASET_FILE",
-        message: `🟡 Dataset ${updatedProcessing.data.id} file public access expired on processing ${updatedProcessing.data.id}`,
-        debug: {
-          processing,
-          updatedProcessing,
-        },
-      });
+        WorkerError.make({
+          key: "@processing_service_fetch_dataset_file/NO_PUBLIC_ACCESS_DATA",
+          message: `🟡 Dataset ${updatedProcessing.data.id} file without public access data on processing ${updatedProcessing.data.id}`,
+          debug: {
+            processing,
+            updatedProcessing,
+          },
+        });
 
-    const datasetResponse = await axios.get(
-      (updatedProcessing.data as IProcessing["data"]).dataset.file.public_url!,
-      { responseType: "stream" },
-    );
-    datasetResponse.data.pipe(datasetStream);
-    await promisifyWriteStream(datasetStream);
+      if (
+        DateHelpers.now().isAfter(
+          updatedProcessing.data.dataset.file.public_url_expires_at,
+        )
+      )
+        WorkerError.make({
+          key: "@processing_service_fetch_dataset_file/EXPIRED_DATASET_FILE",
+          message: `🟡 Dataset ${updatedProcessing.data.id} file public access expired on processing ${updatedProcessing.data.id}`,
+          debug: {
+            processing,
+            updatedProcessing,
+          },
+        });
 
-    const fileExists = fsSync.existsSync(datasetPath);
-    if (!fileExists)
+      const datasetResponse = await axios.get(
+        (updatedProcessing.data as IProcessing["data"]).dataset.file
+          .public_url!,
+        { responseType: "stream" },
+      );
+      datasetResponse.data.pipe(datasetStream);
+      await promisifyWriteStream(datasetStream);
+
+      const fileExists = fsSync.existsSync(datasetPath);
+      if (!fileExists)
+        throw new WorkerError({
+          key: "@processing_service_fetch_dataset_file/MISSING_FILE",
+          message: `Fail to download dataset for processing id ${updatedProcessing.data.id}. The public URL is ${updatedProcessing.data.dataset.file.public_url}.`,
+        });
+
+      return datasetPath;
+    } catch (error) {
+      if (error instanceof WorkerError) throw error;
       throw new WorkerError({
-        key: "@processing_service_fetch_dataset_file/MISSING_FILE",
-        message: `Fail to download dataset for processing id ${updatedProcessing.data.id}. The public URL is ${updatedProcessing.data.dataset.file.public_url}.`,
+        key: "@processing_service_fetch_dataset_file/FAIL_TO_DOWNLOAD",
+        message: `Fail to download dataset for processing id ${processing.data.id}. ${getErrorMessage(error)}`,
+        debug: { processing },
       });
-
-    return datasetPath;
+    }
   }
 
   private async startProcessing(processingId: string): Promise<void> {
     try {
       const processing = await this.getProcessing(processingId);
 
-      const workerId = this.context.authentication.getConfig().worker_id;
+      const { worker_id, name } = this.context.authentication.getConfig();
       this.context.webSocketClient.socket.emit(`worker:processing-acquired`, {
         processing_id: processingId,
       });
-      logger.info(`🔒 Worker ${workerId} acquired processing ${processingId}`);
+      logger.info(
+        `🔒 Worker ${worker_id} (${name}) acquired processing ${processingId}`,
+      );
 
       const { processor } = processing.data;
       await retry("@processing/PULL_DOCKER_IMAGE", () =>
@@ -408,7 +469,7 @@ class ProcessingService {
 
   private async getProcessing(processingId: string): Promise<IProcessing> {
     const configuration = new ConfigurationManagerService(
-      `processing/${processingId}/${processingId}`,
+      `${this.getProcessesFolderName()}/${processingId}/${processingId}`,
     ) as IProcessing["configuration"];
 
     const processing = await retry("@processing/GET_PROCESSING", () =>
@@ -487,8 +548,12 @@ class ProcessingService {
     try {
       if (!processingId) throw new Error("Processing ID not set.");
 
+      const processing = await this.getProcessing(processingId);
+
       const { system_path } = await this.getProcessingPath(processingId);
+
       if (fsSync.existsSync(system_path)) {
+        await this.updateProcessingFilePermissions(processing);
         await rimraf(system_path);
       }
 
@@ -497,6 +562,11 @@ class ProcessingService {
 
       await this.checkDefaultVolume();
     } catch (error) {
+      WorkerError.make({
+        key: "@processing_service_cleanup/FAIL_TO_CLEANUP",
+        message: `Fail to cleanup processing id ${processingId}. ${getErrorMessage(error)}`,
+        debug: { processingId },
+      });
       logger.error(
         `❌ Fail to cleanup processing id ${processingId}. ${getErrorMessage(error)}`,
       );
@@ -547,6 +617,7 @@ class ProcessingService {
       ];
 
       const utilContainer = await this.docker.createContainer({
+        name: `autodroid_worker_cleaner_${crypto.randomUUID()}`,
         Image: "busybox",
         Cmd: ["sh", "-c", commands.join(" && ")],
         HostConfig: {
@@ -574,7 +645,12 @@ class ProcessingService {
       const container = await this.getProcessingContainer({ processingId });
 
       if (!container) {
-        if (processing.data.status === PROCESSING_STATUS.SUCCEEDED) return;
+        if (processing.data.status === PROCESSING_STATUS.SUCCEEDED) {
+          await this.handleSuccess({
+            processingId,
+          });
+          return;
+        }
 
         throw new WorkerError({
           key: "@processing_service_process_execution/MISSING_CONTAINER",
@@ -797,6 +873,7 @@ class ProcessingService {
       throw new WorkerError({
         key: "@processing_service_zip_and_upload/FAIL_TO_UPLOAD",
         message: `Fail to upload zip file for processing id ${processing.data.id}. ${getErrorMessage(error)}`,
+        debug: { processing, error },
       });
     }
   }
@@ -817,6 +894,11 @@ class ProcessingService {
 
       logger.info(`✅ Processing id ${processingId} succeeded.`);
     } catch (error) {
+      WorkerError.make({
+        key: "@processing_service_handle_success/FAIL_TO_HANDLE_SUCCESS",
+        message: `Fail to handle success of processing id ${processingId}. ${getErrorMessage(error)}`,
+        debug: { processingId },
+      });
       logger.error(
         `❌ Fail to handle success of processing id ${processingId}. ${getErrorMessage(error)}`,
       );
@@ -863,6 +945,11 @@ class ProcessingService {
 
       logger.info(`❌ Processing id ${processingId} failed. ${reason}`);
     } catch (error) {
+      WorkerError.make({
+        key: "@processing_service_handle_failure/FAIL_TO_HANDLE_FAILURE",
+        message: `Fail to handle failure of processing id ${processingId}. ${getErrorMessage(error)}`,
+        debug: { processingId, reason },
+      });
       logger.error(
         `❌ Fail to handle failure of processing id ${processingId}. ${getErrorMessage(error)}`,
       );
@@ -879,7 +966,7 @@ class ProcessingService {
   }
 
   private async getCurrentProcessingIds(): Promise<string[]> {
-    const processingPath = getStorageBasePath("processing");
+    const processingPath = getStorageBasePath(this.getProcessesFolderName());
 
     const processingIds = (
       await fsPromises.readdir(processingPath).catch(() => [])
@@ -894,8 +981,7 @@ class ProcessingService {
     const telemetry = await getSystemDynamicInfo();
 
     const { version } = getEnvConfig().APP_INFO;
-    const { name } = this.context.authentication.getConfig();
-    const workerId = this.context.authentication.getConfig().worker_id;
+    const { worker_id, name } = this.context.authentication.getConfig();
 
     if (
       processingIds.length > 0 &&
@@ -903,11 +989,11 @@ class ProcessingService {
         this.processCount !== processingIds.length)
     )
       logger.info(
-        `🔄 Processing ${processingIds.length} items... [Worker ID ${workerId}]`,
+        `🔄 Processing ${processingIds.length} items... [Worker ID ${worker_id} (${name})]`,
       );
 
     if (processingIds.length === 0 && this.status !== WORKER_STATUS.IDLE)
-      logger.info(`🆗 Waiting for items. [Worker ID ${workerId}]`);
+      logger.info(`🆗 Waiting for items. [Worker ID ${worker_id} (${name})]`);
 
     this.processCount = processingIds.length;
     this.status =
@@ -936,8 +1022,15 @@ class ProcessingService {
         }, Promise.resolve());
       }
 
+      await this.cleanupOldCleanerContainers();
+
       this.startProcessingInterval();
     } catch (error) {
+      WorkerError.make({
+        key: "@processing_service_process/FAIL_TO_PROCESS",
+        message: `Fail to process items. ${getErrorMessage(error)}`,
+        debug: { error },
+      });
       logger.error(`❌ Fail to process items. ${getErrorMessage(error)}`);
       this.startProcessingInterval();
     }

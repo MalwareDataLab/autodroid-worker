@@ -12,7 +12,7 @@ import { getSystemEnvironment } from "./getSystemEnvironment.util";
 
 export const getStorageBaseFolder = (dir: string) => {
   const envConfig = getEnvConfig();
-  return path.join(envConfig.APP_INFO.name, dir);
+  return path.join(`${envConfig.APP_INFO.name}-${process.env.NAME}`, dir);
 };
 
 export const getStorageBasePath = (dir: string) => {
