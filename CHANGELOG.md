@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.3.1...v0.4.0) (2025-03-14)
+
+
+### Features
+
+* add parallel workflow and sentry data tracking ([0fe7d26](https://github.com/MalwareDataLab/autodroid-worker/commit/0fe7d267ecec188bdb63472a254e85d5bb5bc397))
+* add worker name ([da53b43](https://github.com/MalwareDataLab/autodroid-worker/commit/da53b43be8d1174e0b053259db72611858607d04))
+
 ## [0.3.1](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.3.0...v0.3.1) (2025-03-12)
 
 
