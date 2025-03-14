@@ -63,13 +63,20 @@ class WorkerError extends Error {
   private async register() {
     const envConfig = getEnvConfig();
 
-    Sentry.captureException(this);
-
     if (
       (!!this.debug || this.statusCode >= 500) &&
       !this.debug?.disableRegister &&
       !envConfig.isTestEnv
     ) {
+      Sentry.addBreadcrumb({
+        category: "data",
+        message: this.message,
+        data: this.debug,
+        type: "error",
+        level: "debug",
+      });
+      Sentry.captureException(this);
+
       if (envConfig.DEBUG)
         logger.error(`❌ Error debug: ${util.inspect(this, false, 4, true)}`);
     }
@@ -77,6 +84,14 @@ class WorkerError extends Error {
 
   static make(params: IWorkerError) {
     return new WorkerError(params);
+  }
+
+  static isInstance(error: unknown): error is WorkerError {
+    if (!error) return false;
+    return (
+      error instanceof WorkerError ||
+      (error as any).handler === WorkerError.prototype.name
+    );
   }
 }
 

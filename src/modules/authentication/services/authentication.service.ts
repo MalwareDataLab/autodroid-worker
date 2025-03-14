@@ -78,7 +78,10 @@ class AuthenticationService {
       forceRegistration: attempt >= 5,
     });
 
-    logger.info(`🆗 Worker v${version} id ${this.getConfig().worker_id}`);
+    const config = this.getConfig();
+    logger.info(
+      `🆗 Worker v${version} name ${config.name} id ${config.worker_id}`,
+    );
   }
 
   public getConfig() {
