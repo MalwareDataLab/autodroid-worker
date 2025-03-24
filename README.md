@@ -94,7 +94,7 @@ O Worker está inserido no contexto do projeto AutoDroid, que é uma aplicação
 
 ## 🚩 Antes de começar <a name = "before_start"></a>
 
-Crie a instância do (AutoDroid API Gateway) conforme especificado no repositório principal [AutoDroid API](https://github.com/MalwareDataLab/autodroid-api).
+Crie a instância do (AutoDroid API Gateway) conforme especificado no repositório principal [AutoDroid API](https://github.com/MalwareDataLab/autodroid-api). Para facilitar a configuração inicial, o repositório da API contém um [script de demonstração completo](https://github.com/MalwareDataLab/autodroid-api#demo) que automatiza todo o processo de configuração, incluindo a instalação e configuração do backend e do worker em um único ambiente. Este script é ideal para testes e desenvolvimento local.
 
 Utilizando um usuário autenticado como administrador, crie um `WorkerRegistrationToken` na API Gateway, que será utilizado para autenticar o Worker com a API. Utilize o Postman, SDK ou linha de comando para executar esta ação.
 
