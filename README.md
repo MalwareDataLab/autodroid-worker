@@ -1,6 +1,6 @@
 <p align="center">
   <a href="" rel="noopener">
-    <img width="200px" height="200px" src="./assets/logo.png" alt="Project logo" style="fill:#000000">
+    <img width="200px" height="200px" src="./docs/assets/logo.png" alt="Project logo" style="fill:#000000">
   </a>
 </p>
 
@@ -25,8 +25,9 @@
 - [🚀 Deployment](#deployment)
 - [🔃 Atualizando](#updating)
 - [🔧 Solução de Problemas](#troubleshooting)
-- [🤝🏻 Contribuições](./CONTRIBUTING.md)
-- [💾 Changelog](./CHANGELOG.md)
+- [📊 Telemetria](#telemetry)
+- [🤝🏻 Contribuições](./docs/CONTRIBUTING.md)
+- [💾 Changelog](./docs/CHANGELOG.md)
 - [📖 Referências](#bibliography)
 
 ## 📖 Sobre <a name = "about"></a>
@@ -57,7 +58,7 @@ Essa aplicação foi desenvolvida especialmente buscando não expor a infraestru
 
 O Worker está inserido no contexto do projeto AutoDroid, que é uma aplicação que visa oferecer a ferramenta DroidAugmentor/MalSynGen como um serviço.
 
-<img src="./assets/system-context.jpg" alt="Overview" style="fill:#000000">
+<img src="./docs/assets/system-context.jpg" alt="Overview" style="fill:#000000">
 
 ## ⛏️ Tecnologias Utilizadas <a name = "built_using"></a>
 
@@ -109,7 +110,6 @@ curl --location 'http://localhost:3333/admin/worker/registration-token' \
 
 Obtenha o token através do valor `token` retornado pela API.
 
-
 ## 🏁 Primeiros Passos <a name = "getting_started"></a>
 
 Estas instruções irão ajudá-lo a obter uma cópia deste projeto e executá-lo em sua máquina local para fins de desenvolvimento e teste. Consulte [deployment](#deployment) para obter informações sobre como implantar o projeto em ambiente produtivo.
@@ -148,7 +148,7 @@ docker compose -f docker-compose.dev.yml up
 
 Para parar a aplicação, pressione ```Ctrl + C``` no terminal ou execute ```docker compose -f docker-compose.dev.yml down``` na raiz deste repositório, caso esteja executando a aplicação em modo destacado.
 
-Uma pasta `./runtime` será criada na raiz deste repositório para armazenar os arquivos temporários da aplicação. Pode ser necessário permissões de superusuário para acessar, modificar ou excluir esta pasta.
+Uma pasta `./docs/runtime` será criada na raiz deste repositório para armazenar os arquivos temporários da aplicação. Pode ser necessário permissões de superusuário para acessar, modificar ou excluir esta pasta.
 
 Realize a utilização da aplicação conforme em [utilização](https://github.com/MalwareDataLab/autodroid-api#usage).
 
@@ -241,7 +241,7 @@ docker compose down
 docker stop $(docker ps -q)
 
 # Remova todos os arquivos da pasta runtime
-sudo rm -rf ./.runtime
+sudo rm -rf ./docs/.runtime
 
 # Remova todas as imagens relacionadas a este projeto
 docker rmi $(docker images -q -f "reference=autodroid_*")
@@ -267,6 +267,25 @@ docker compose build --no-cache
 ```
 
 Persistindo o erro, entre em contato com o mantenedor do projeto.
+
+## 📊 Telemetria <a name = "telemetry"></a>
+
+O AutoDroid Worker pode ser monitorado através de uma solução de telemetria externa, composta por dois componentes:
+
+### AutoDroid Watcher Server
+
+O [AutoDroid Watcher Server](https://github.com/MalwareDataLab/autodroid-watcher-server) é um servidor que recebe dados de telemetria e conduz experimentos do software AutoDroid. Este servidor recebe a conexão de um ou mais clientes que devem ser instalados nas máquinas onde o AutoDroid Worker está instalado.
+
+### AutoDroid Watcher Client
+
+O [AutoDroid Watcher Client](https://github.com/MalwareDataLab/autodroid-watcher-client) é responsável por coletar os dados de telemetria e enviá-los para o servidor, além de iniciar os experimentos e a coleta de dados.
+
+Para utilizar a solução de telemetria:
+
+1. Instale o AutoDroid Watcher Server em uma máquina separada
+2. Instale o AutoDroid Watcher Client em cada máquina onde o AutoDroid Worker está instalado
+3. Configure o cliente para se conectar ao servidor de telemetria
+4. Os resultados dos experimentos serão armazenados em arquivos CSV e gráficos, que podem ser utilizados para análise e visualização dos dados coletados
 
 ## 📖 Referências <a name="bibliography"></a>
 
