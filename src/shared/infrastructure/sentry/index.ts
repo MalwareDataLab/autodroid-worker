@@ -7,6 +7,7 @@ Sentry.init({
   integrations: [nodeProfilingIntegration()],
   tracesSampleRate: 1.0,
   environment: getEnvConfig().NODE_ENV,
+  serverName: getEnvConfig().NAME,
 });
 
 Sentry.profiler.startProfiler();

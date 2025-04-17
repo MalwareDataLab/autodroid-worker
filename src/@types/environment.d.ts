@@ -8,6 +8,8 @@ declare global {
       API_BASE_URL: string;
       NAME: string;
       REGISTRATION_TOKEN: string;
+
+      WORKER_ID: string;
     }
   }
 }

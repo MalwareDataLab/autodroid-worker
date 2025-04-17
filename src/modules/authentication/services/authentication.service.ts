@@ -118,6 +118,8 @@ class AuthenticationService {
 
     await this.getCurrentData();
 
+    if (config.worker_id) process.env.WORKER_ID = config.worker_id;
+
     return this.getConfig();
   }
 

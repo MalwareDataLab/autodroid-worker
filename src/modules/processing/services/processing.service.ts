@@ -544,11 +544,34 @@ class ProcessingService {
     };
   }
 
+  private async getProcessingFromLocalStorage(
+    processingId: string,
+  ): Promise<IProcessing> {
+    const configuration = new ConfigurationManagerService(
+      `${this.getProcessesFolderName()}/${processingId}/${processingId}`,
+    ) as IProcessing["configuration"];
+
+    const configData = configuration.getConfig();
+
+    return {
+      ...configData,
+      configuration,
+    };
+  }
+
   private async cleanup({ processingId }: { processingId: string }) {
     try {
       if (!processingId) throw new Error("Processing ID not set.");
 
-      const processing = await this.getProcessing(processingId);
+      const processing = await this.getProcessing(processingId).catch(error => {
+        WorkerError.make({
+          key: "@processing_service_cleanup/FAIL_TO_GET_PROCESSING_ON_CLEANUP",
+          message: `Fail to get processing id ${processingId}. ${getErrorMessage(error)}`,
+          debug: { processingId },
+        });
+
+        return this.getProcessingFromLocalStorage(processingId);
+      });
 
       const { system_path } = await this.getProcessingPath(processingId);
 
