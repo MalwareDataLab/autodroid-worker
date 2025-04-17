@@ -55,6 +55,11 @@ class WorkerError extends Error {
       ? {
           ...sanitizeErrorObject(params.debug || {}),
           error_code: this.errorCode,
+
+          _worker_id: getEnvConfig().WORKER_ID,
+          _worker_name: getEnvConfig().NAME,
+          _worker_version: getEnvConfig().APP_INFO.version,
+          _worker_env: getEnvConfig().NODE_ENV,
         }
       : undefined;
     this.action = this.register();
