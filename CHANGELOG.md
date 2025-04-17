@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.4.0...v0.4.1) (2025-04-17)
+
+
+### Bug Fixes
+
+* cleanup local storage data fallback ([9b58720](https://github.com/MalwareDataLab/autodroid-worker/commit/9b58720609cbebfa5074bcc0c64c58d9614ae6b2))
+
 ## [0.4.0](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.3.1...v0.4.0) (2025-03-14)
 
 
