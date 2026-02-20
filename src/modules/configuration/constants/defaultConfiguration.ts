@@ -17,6 +17,8 @@ export const defaultConfiguration = {
     access_token_expires_at: null as string | null | undefined,
 
     name: null as string | null | undefined,
+
+    auth_failure_reported: false as boolean | null | undefined,
   },
   [CONFIGURATION.JOB]: {},
 
