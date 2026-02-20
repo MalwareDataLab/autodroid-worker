@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.4.1...v0.5.0) (2026-02-20)
+
+
+### Features
+
+* add entire container output to result files ([4de74c5](https://github.com/MalwareDataLab/autodroid-worker/commit/4de74c5842416e22205483374f1ee504c1373a28))
+
 ## [0.4.1](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.4.0...v0.4.1) (2025-04-17)
 
 
