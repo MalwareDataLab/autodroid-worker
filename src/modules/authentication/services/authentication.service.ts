@@ -118,6 +118,8 @@ class AuthenticationService {
 
     await this.getCurrentData();
 
+    await this.config.setConfigValue("auth_failure_reported", false);
+
     if (config.worker_id) process.env.WORKER_ID = config.worker_id;
 
     return this.getConfig();
@@ -301,12 +303,15 @@ class AuthenticationService {
       });
     } catch (error) {
       if (error instanceof WorkerError) throw error;
+
+      const authFailureReported = !!this.getConfig().auth_failure_reported;
+      if (!authFailureReported)
+        await this.config.setConfigValue("auth_failure_reported", true);
+
       throw new WorkerError({
         key: "@authentication_service_register/REGISTRATION_FAILED",
         message: `Registration failed. ${getErrorMessage(error)}`,
-        debug: {
-          error,
-        },
+        ...(authFailureReported ? {} : { debug: { error } }),
       });
     }
   }
@@ -324,12 +329,15 @@ class AuthenticationService {
       });
     } catch (error) {
       if (error instanceof WorkerError) throw error;
+
+      const authFailureReported = !!this.getConfig().auth_failure_reported;
+      if (!authFailureReported)
+        await this.config.setConfigValue("auth_failure_reported", true);
+
       throw new WorkerError({
         key: "@authentication_service_get_refresh_token/GET_REFRESH_TOKEN_FAILED",
         message: `Get refresh token failed. ${getErrorMessage(error)}`,
-        debug: {
-          error,
-        },
+        ...(authFailureReported ? {} : { debug: { error } }),
       });
     }
   }
