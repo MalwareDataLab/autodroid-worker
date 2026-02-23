@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.5.0...v0.5.1) (2026-02-23)
+
+
+### Bug Fixes
+
+* update worker log glob patterns to include log file ([38185f5](https://github.com/MalwareDataLab/autodroid-worker/commit/38185f558baf8ca183bc9c1de189ee57747ec4c0))
+
 ## [0.5.0](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.4.1...v0.5.0) (2026-02-20)
 
 
