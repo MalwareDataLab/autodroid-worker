@@ -689,6 +689,11 @@ class ProcessingService {
     }
   }
 
+  private generateProcessingLogFilename(processing: IProcessing) {
+    const outputLogsFilename = `_autodroid_worker_processing_${processing.data.id}_output.log`;
+    return outputLogsFilename;
+  }
+
   private async processExecution(processingId: string) {
     try {
       const processing = await this.getProcessing(processingId);
@@ -728,7 +733,8 @@ class ProcessingService {
 
         const outputLogs = await this.getAllLogsFromContainer({ container });
         if (outputLogs.trim().length > 0) {
-          const outputLogsFilename = `_autodroid_worker_processing_${processing.data.id}_output.log`;
+          const outputLogsFilename =
+            this.generateProcessingLogFilename(processing);
           const outputLogsPath = path.join(
             processing.system_output_dir,
             outputLogsFilename,
@@ -851,9 +857,14 @@ class ProcessingService {
     try {
       const { processor } = processing.data;
 
+      const logFile = this.generateProcessingLogFilename(processing);
+
       const resultFiles = await this.getMatchedFilesByGlobPatterns({
         containerDir: processing.system_output_dir,
-        globPatterns: processor.configuration.output_result_file_glob_patterns,
+        globPatterns: [
+          ...processor.configuration.output_result_file_glob_patterns,
+          logFile,
+        ],
       });
 
       const metricsFiles = await this.getMatchedFilesByGlobPatterns({
