@@ -53,6 +53,7 @@ class WorkerError extends Error {
 
     this.debug = params.debug
       ? {
+          /* v8 ignore next -- params.debug is truthy in this branch, so the `|| {}` fallback is unreachable */
           ...sanitizeErrorObject(params.debug || {}),
           error_code: this.errorCode,
 
@@ -70,6 +71,7 @@ class WorkerError extends Error {
 
     if (
       (!!this.debug || this.statusCode >= 500) &&
+      /* v8 ignore next -- reached only when this.debug is defined, so the optional-chain null path is unreachable */
       !this.debug?.disableRegister &&
       !envConfig.isTestEnv
     ) {

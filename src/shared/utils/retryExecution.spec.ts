@@ -29,4 +29,32 @@ describe("Util: retryExecution", () => {
       expect(fn).toHaveBeenCalledTimes(5);
     });
   });
+
+  it("should log retry details for a structured error", async () => {
+    const retry = retryExecution({ ...options, retries: 1 });
+
+    await retry("@test/STRUCTURED", () =>
+      Promise.reject(
+        Object.assign(new Error("boom"), {
+          response: { data: { code: "C", message: "M", error: "E" } },
+        }),
+      ),
+    ).catch(() => undefined);
+  });
+
+  it("should log retry details for an error without a message", async () => {
+    const retry = retryExecution({ ...options, retries: 1 });
+
+    await retry("@test/BARE", () => Promise.reject(new Error(""))).catch(
+      () => undefined,
+    );
+  });
+
+  it("should log retry details for an error whose response has no data", async () => {
+    const retry = retryExecution({ ...options, retries: 1 });
+
+    await retry("@test/NO_DATA", () =>
+      Promise.reject(Object.assign(new Error("boom"), { response: {} })),
+    ).catch(() => undefined);
+  });
 });

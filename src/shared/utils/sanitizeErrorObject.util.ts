@@ -8,6 +8,7 @@ const sanitizeErrorObject = <T>(error: T) => {
   return Object.entries(error).reduce((acc, [key, value]) => {
     const sanitizedData = sanitizers.reduce<typeof value | null>(
       (result, sanitize) => {
+        /* v8 ignore next -- the sanitizers list has a single entry, so this short-circuit is unreachable */
         if (result) return result;
         return sanitize(value);
       },

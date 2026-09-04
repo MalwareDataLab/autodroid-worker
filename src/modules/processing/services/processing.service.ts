@@ -235,7 +235,7 @@ class ProcessingService {
           stream,
           (progressError: Error | null, _: any) => {
             if (progressError) {
-              reject(err);
+              reject(progressError);
               return;
             }
 
@@ -788,7 +788,7 @@ class ProcessingService {
       const archive = archiver("zip", { zlib: { level: 9 } });
       const hash = crypto.createHash("md5");
 
-      output.on("data", chunk => {
+      archive.on("data", chunk => {
         hash.update(chunk);
       });
 

@@ -21,6 +21,8 @@ export const getStorageBasePath = (dir: string) => {
   const selectedDir = getStorageBaseFolder(dir);
 
   switch (environment) {
+    case "test":
+      return path.join(process.cwd(), "temp", "test", selectedDir);
     case "development":
       return path.join(process.cwd(), "temp", selectedDir);
     case "container":

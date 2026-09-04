@@ -8,11 +8,8 @@ export default defineWorkspace([
       name: "e2e",
       include: ["**/*.e2e.test.ts"],
       exclude: [...defaultExclude, "**/*.spec.ts"],
-      globalSetup: ["test/config/integration/globalSetup.ts"],
-      setupFiles: [
-        "test/config/integration/setup.ts",
-        "test/config/e2e/setup.ts",
-      ],
+      globalSetup: ["test/config/e2e/globalSetup.ts"],
+      setupFiles: ["test/config/integration/setup.ts"],
     },
   },
   {

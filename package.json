@@ -15,6 +15,7 @@
     "lint:eslint": "eslint '{src,test}/**/*.{ts,tsx}' --fix",
     "lint:tsc": "tsc --noEmit",
     "test": "vitest run --config test/config/vitest.config.mts",
+    "coverage:gaps": "node scripts/coverage-gaps.mjs",
     "test:watch": "vitest --config test/config/vitest.config.mts",
     "test:debug": "node --inspect ./node_modules/.bin/vitest --config test/config/vitest.config.mts --no-file-parallelism",
     "test:unit": "vitest run --config test/config/vitest.config.mts --project unit",
