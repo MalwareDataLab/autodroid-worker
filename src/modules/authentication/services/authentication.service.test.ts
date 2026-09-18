@@ -27,7 +27,9 @@ vi.mock("axios", () => ({
   Axios: class {},
 }));
 
-const configFilePath = getStorageBasePath(`${CONFIGURATION.AUTHENTICATION}.json`);
+const configFilePath = getStorageBasePath(
+  `${CONFIGURATION.AUTHENTICATION}.json`,
+);
 
 const readRealConfig = () =>
   JSON.parse(fsSync.readFileSync(configFilePath, "utf-8"));
@@ -87,7 +89,8 @@ describe("Integration: AuthenticationService against a real ConfigurationManager
   it("should register, persist the real session to disk, and fetch current data on first init", async () => {
     mocks.apiClient.post.mockImplementation((url: string) => {
       if (url === "/register") return Promise.resolve(registerResponse());
-      if (url === "/access-token") return Promise.resolve(accessTokenResponse());
+      if (url === "/access-token")
+        return Promise.resolve(accessTokenResponse());
       return Promise.reject(new Error(`unexpected POST ${url}`));
     });
     mocks.apiClient.get.mockResolvedValue({ data: { id: "worker" } });
@@ -102,7 +105,9 @@ describe("Integration: AuthenticationService against a real ConfigurationManager
 
     expect(mocks.apiClient.post).toHaveBeenCalledWith(
       "/register",
-      expect.objectContaining({ registration_token: "a-real-registration-token" }),
+      expect.objectContaining({
+        registration_token: "a-real-registration-token",
+      }),
     );
     expect(mocks.apiClient.get).toHaveBeenCalledWith(
       "/",
@@ -129,7 +134,8 @@ describe("Integration: AuthenticationService against a real ConfigurationManager
   it("should reuse a real, already-persisted session and skip registration on the next instantiation", async () => {
     mocks.apiClient.post.mockImplementation((url: string) => {
       if (url === "/register") return Promise.resolve(registerResponse());
-      if (url === "/access-token") return Promise.resolve(accessTokenResponse());
+      if (url === "/access-token")
+        return Promise.resolve(accessTokenResponse());
       return Promise.reject(new Error(`unexpected POST ${url}`));
     });
     mocks.apiClient.get.mockResolvedValue({ data: { id: "worker" } });
@@ -157,39 +163,32 @@ describe("Integration: AuthenticationService against a real ConfigurationManager
     expect(second.getConfig().worker_id).toBe(first.getConfig().worker_id);
   });
 
-  it(
-    "should persist the real auth-failure flag to disk after registration exhausts its retries",
-    async () => {
-      mocks.apiClient.post.mockImplementation((url: string) => {
-        if (url === "/register")
-          return Promise.reject(new Error("network down"));
-        return Promise.reject(new Error(`unexpected POST ${url}`));
-      });
+  it("should persist the real auth-failure flag to disk after registration exhausts its retries", async () => {
+    mocks.apiClient.post.mockImplementation((url: string) => {
+      if (url === "/register") return Promise.reject(new Error("network down"));
+      return Promise.reject(new Error(`unexpected POST ${url}`));
+    });
 
-      const service = new AuthenticationService({
-        name: "worker-1",
-        registration_token: "a-real-registration-token",
-        context: buildContext(),
-      });
+    const service = new AuthenticationService({
+      name: "worker-1",
+      registration_token: "a-real-registration-token",
+      context: buildContext(),
+    });
 
-      await expect(service.initialization).rejects.toThrowError(
-        expect.objectContaining({ key: "@execute_action_util/RUN" }),
-      );
+    await expect(service.initialization).rejects.toThrowError(
+      expect.objectContaining({ key: "@execute_action_util/RUN" }),
+    );
 
-      const persisted = readRealConfig();
-      expect(persisted.auth_failure_reported).toBe(true);
-      expect(persisted.worker_id).toBeNull();
-    },
-    // 5 real retries at 1s apart, each doing a real (unmocked) system-info
-    // collection twice (signature + registration payload) — genuinely slow,
-    // not a hang.
-    40000,
-  );
+    const persisted = readRealConfig();
+    expect(persisted.auth_failure_reported).toBe(true);
+    expect(persisted.worker_id).toBeNull();
+  }, 40000); // not a hang. // collection, which alone takes seconds on some hosts — genuinely slow, // 5 real retries at 1s apart on top of one real (unmocked) system-info
 
   it("should refresh only the access token on a session with a fresh refresh token", async () => {
     mocks.apiClient.post.mockImplementation((url: string) => {
       if (url === "/register") return Promise.resolve(registerResponse());
-      if (url === "/access-token") return Promise.resolve(accessTokenResponse());
+      if (url === "/access-token")
+        return Promise.resolve(accessTokenResponse());
       return Promise.reject(new Error(`unexpected POST ${url}`));
     });
     mocks.apiClient.get.mockResolvedValue({ data: { id: "worker" } });

@@ -11,10 +11,12 @@ describe("Utils: getSystemStaticInfo", () => {
     vi.clearAllMocks();
   });
 
-  it("should return the system static data", async () => {
+  it("should collect the system static data once and reuse it on later calls", async () => {
     (si.getStaticData as Mock).mockResolvedValue({ cpu: "x" });
 
     await expect(getSystemStaticInfo()).resolves.toEqual({ cpu: "x" });
+    await expect(getSystemStaticInfo()).resolves.toEqual({ cpu: "x" });
+
     expect(si.getStaticData).toHaveBeenCalledOnce();
   });
 });

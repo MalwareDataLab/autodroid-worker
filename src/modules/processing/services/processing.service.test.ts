@@ -9,11 +9,13 @@ import path from "node:path";
 // Type import
 import { AppContext } from "@shared/types/appContext.type";
 
+// Test config import
+import { INTEGRATION_IDLE_IMAGE as IDLE_IMAGE } from "@/test/config/integration/globalSetup";
+
 // Target import
 import { ProcessingService } from "./processing.service";
 
 const CLEANER_CONTAINER_PREFIX = "autodroid_worker_cleaner_";
-const IDLE_IMAGE = "alpine:latest";
 
 const buildContext = () =>
   ({

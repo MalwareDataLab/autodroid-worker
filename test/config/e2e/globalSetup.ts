@@ -6,15 +6,9 @@ import {
   E2E_TOOL_IMAGE,
 } from "@/test/fixtures/e2e-tool/image";
 
-const execFileAsync = promisify(execFile);
+import { ensureDockerImage } from "../ensureDockerImage";
 
-const ensureBusyboxImage = async () => {
-  try {
-    await execFileAsync("docker", ["image", "inspect", "busybox:latest"]);
-  } catch {
-    await execFileAsync("docker", ["pull", "busybox:latest"]);
-  }
-};
+const execFileAsync = promisify(execFile);
 
 // e2e drives ProcessingService's real pipeline against a real Docker daemon,
 // so the fixture tool image it runs containers from must exist before any
@@ -22,7 +16,7 @@ const ensureBusyboxImage = async () => {
 // running it unconditionally on every run never risks a stale image.
 // eslint-disable-next-line import/no-default-export
 export default async function setup() {
-  await ensureBusyboxImage();
+  await ensureDockerImage("busybox:latest");
   await execFileAsync("docker", [
     "build",
     "-t",

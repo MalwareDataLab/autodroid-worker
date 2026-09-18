@@ -48,7 +48,9 @@ describe("Integration: ConfigurationManagerService against the real filesystem",
     );
 
     const persisted = JSON.parse(fsSync.readFileSync(filePath, "utf-8"));
-    expect(persisted).toEqual(defaultConfiguration[CONFIGURATION.AUTHENTICATION]);
+    expect(persisted).toEqual(
+      defaultConfiguration[CONFIGURATION.AUTHENTICATION],
+    );
   });
 
   it("should load an already-persisted config file instead of overwriting it", () => {
@@ -109,7 +111,13 @@ describe("Integration: ConfigurationManagerService against the real filesystem",
     const persisted = JSON.parse(
       fsSync.readFileSync(configFilePath(key), "utf-8"),
     );
-    expect(persisted).toEqual({ a: null, b: null, c: null, d: null, e: "kept" });
+    expect(persisted).toEqual({
+      a: null,
+      b: null,
+      c: null,
+      d: null,
+      e: "kept",
+    });
   });
 
   it("should fill missing keys with the module's real default configuration on write", async () => {
@@ -118,7 +126,9 @@ describe("Integration: ConfigurationManagerService against the real filesystem",
 
     await service.setConfigValue("name" as never, "worker-x" as never);
 
-    const persisted = JSON.parse(fsSync.readFileSync(configFilePath(key), "utf-8"));
+    const persisted = JSON.parse(
+      fsSync.readFileSync(configFilePath(key), "utf-8"),
+    );
     expect(persisted).toEqual({
       ...defaultConfiguration[CONFIGURATION.AUTHENTICATION],
       name: "worker-x",
