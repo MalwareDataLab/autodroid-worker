@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.0](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.5.1...v0.6.0) (2026-10-16)
+
+
+### Features
+
+* wip test cli mcp ([dbbd227](https://github.com/MalwareDataLab/autodroid-worker/commit/dbbd227dd36ac46947eb7a65400569295835ec79))
+
+
+### Bug Fixes
+
+* **test:** isolate storage per test file and cache system static info ([979b001](https://github.com/MalwareDataLab/autodroid-worker/commit/979b001197d713d9bd8565fc111962db9c31604c))
+
 ## [0.5.1](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.5.0...v0.5.1) (2026-02-23)
 
 
