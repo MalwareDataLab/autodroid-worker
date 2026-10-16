@@ -1,0 +1,24 @@
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+
+// Configuration import
+import { ensureDockerImage } from "../ensureDockerImage";
+
+// Fixture import
+import {
+  E2E_TOOL_BUILD_CONTEXT,
+  E2E_TOOL_IMAGE,
+} from "@/test/fixtures/e2e-tool/image";
+
+const execFileAsync = promisify(execFile);
+
+// eslint-disable-next-line import/no-default-export
+export default async function setup() {
+  await ensureDockerImage("busybox:latest");
+  await execFileAsync("docker", [
+    "build",
+    "-t",
+    E2E_TOOL_IMAGE,
+    E2E_TOOL_BUILD_CONTEXT,
+  ]);
+}

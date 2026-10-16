@@ -1,8 +1,8 @@
 import { io } from "socket.io-client";
 
 // Util import
-import { logger } from "@shared/utils/logger";
 import { executeAction } from "@shared/utils/executeAction.util";
+import { logger } from "@shared/utils/logger";
 
 // Type import
 import { AppContext } from "@shared/types/appContext.type";

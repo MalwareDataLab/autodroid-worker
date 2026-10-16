@@ -2,9 +2,13 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { z } from "zod";
 
+// Util import
+import { logger } from "@shared/utils/logger";
+
+// Data import
 import AppInfo from "@/package.json";
 
-import { logger } from "@shared/utils/logger";
+// Infrastructure import
 import { Worker } from "./shared/infrastructure/worker";
 
 const argv = yargs(hideBin(process.argv))

@@ -1,12 +1,14 @@
 import { randomUUID } from "node:crypto";
 import util from "node:util";
 
-// Config import
+// Configuration import
 import { getEnvConfig } from "@config/env";
 
 // Util import
 import { logger } from "@shared/utils/logger";
 import { sanitizeErrorObject } from "@shared/utils/sanitizeErrorObject.util";
+
+// Infrastructure import
 import { Sentry } from "@shared/infrastructure/sentry";
 
 interface IWorkerError {
@@ -27,7 +29,7 @@ class WorkerError extends Error {
 
   public readonly handler: string;
   public readonly errorCode: string;
-  public readonly statusCode: number;
+  public readonly statusCode: number | undefined;
 
   public readonly debug:
     | {
@@ -50,9 +52,11 @@ class WorkerError extends Error {
 
     this.handler = this.constructor.name;
     this.errorCode = randomUUID();
+    this.statusCode = params.statusCode;
 
     this.debug = params.debug
       ? {
+          /* v8 ignore next -- params.debug is truthy in this branch, so the `|| {}` fallback is unreachable */
           ...sanitizeErrorObject(params.debug || {}),
           error_code: this.errorCode,
 
@@ -69,7 +73,7 @@ class WorkerError extends Error {
     const envConfig = getEnvConfig();
 
     if (
-      (!!this.debug || this.statusCode >= 500) &&
+      (!!this.debug || (this.statusCode ?? 0) >= 500) &&
       !this.debug?.disableRegister &&
       !envConfig.isTestEnv
     ) {
@@ -95,7 +99,7 @@ class WorkerError extends Error {
     if (!error) return false;
     return (
       error instanceof WorkerError ||
-      (error as any).handler === WorkerError.prototype.name
+      (error as any).handler === WorkerError.name
     );
   }
 }

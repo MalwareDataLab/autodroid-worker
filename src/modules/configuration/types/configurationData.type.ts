@@ -1,4 +1,4 @@
-// Config import
+// Constant import
 import { defaultConfiguration } from "../constants/defaultConfiguration";
 
 // Enum import

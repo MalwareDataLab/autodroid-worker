@@ -1,3 +1,4 @@
+// Data import
 import APP_INFO from "@/package.json";
 
 const getEnvConfig = () =>

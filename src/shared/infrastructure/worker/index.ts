@@ -3,18 +3,20 @@ import "@shared/infrastructure/sentry";
 // Error import
 import { WorkerError } from "@shared/errors/WorkerError";
 
-// Type import
-import { AppConfig } from "@shared/types/appConfig.type";
+// Client import
+import { Api } from "@shared/infrastructure/api";
 
 // Util import
 import { logger } from "@shared/utils/logger";
 
+// Type import
+import { AppConfig } from "@shared/types/appConfig.type";
+
 // Service import
-import { ProcessingService } from "@modules/processing/services/processing.service";
 import { AuthenticationService } from "@modules/authentication/services/authentication.service";
+import { ProcessingService } from "@modules/processing/services/processing.service";
 
 // Infrastructure import
-import { Api } from "@shared/infrastructure/api";
 import { WebSocketApp } from "@shared/infrastructure/websocket";
 
 class Worker {
