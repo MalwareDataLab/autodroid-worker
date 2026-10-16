@@ -1,10 +1,10 @@
-# Código de Conduta do Pacto de Colaboradores
+# Código de conduta do Pacto de Colaboradores
 
-## Nosso Compromisso
+## Nosso compromisso
 
 No interesse de promover um ambiente aberto e acolhedor, nós, como colaboradores e mantenedores, nos comprometemos a tornar a participação em nosso projeto e em nossa comunidade uma experiência livre de assédio para todos, independentemente de idade, tamanho corporal, deficiência, etnia, características sexuais, identidade e expressão de gênero, nível de experiência, educação, status socioeconômico, nacionalidade, aparência pessoal, raça, religião ou identidade e orientação sexual.
 
-## Nossos Padrões
+## Nossos padrões
 
 Exemplos de comportamentos que contribuem para a criação de um ambiente positivo incluem:
 
@@ -22,7 +22,7 @@ Exemplos de comportamentos inaceitáveis por parte dos participantes incluem:
 * Divulgar informações privadas de outras pessoas, como endereço físico ou eletrônico, sem permissão explícita
 * Outras condutas que possam ser consideradas inadequadas em um ambiente profissional
 
-## Nossas Responsabilidades
+## Nossas responsabilidades
 
 Os mantenedores do projeto são responsáveis por esclarecer os padrões de comportamento aceitável e espera-se que tomem medidas corretivas apropriadas e justas em resposta a quaisquer casos de comportamento inaceitável.
 
@@ -34,7 +34,7 @@ Este Código de Conduta se aplica tanto nos espaços do projeto quanto em espaç
 
 ## Aplicação
 
-Casos de comportamento abusivo, assediador ou de outra forma inaceitável podem ser relatados entrando em contato com a equipe do projeto em kylelobo20@gmail.com. Todas as reclamações serão revisadas e investigadas e resultarão em uma resposta considerada necessária e apropriada às circunstâncias. A equipe do projeto tem a obrigação de manter a confidencialidade em relação ao denunciante de um incidente. Detalhes adicionais sobre políticas específicas de aplicação podem ser publicados separadamente.
+Casos de comportamento abusivo, assediador ou de outra forma inaceitável podem ser relatados entrando em contato com a equipe do projeto em luiz@laviola.dev. Todas as reclamações serão revisadas e investigadas e resultarão em uma resposta considerada necessária e apropriada às circunstâncias. A equipe do projeto tem a obrigação de manter a confidencialidade em relação ao denunciante de um incidente. Detalhes adicionais sobre políticas específicas de aplicação podem ser publicados separadamente.
 
 Os mantenedores do projeto que não seguirem ou aplicarem o Código de Conduta de boa fé poderão enfrentar repercussões temporárias ou permanentes, conforme determinado por outros membros da liderança do projeto.
 

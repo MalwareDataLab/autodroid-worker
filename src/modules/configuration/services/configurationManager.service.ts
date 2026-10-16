@@ -1,23 +1,23 @@
-import fsPromises from "node:fs/promises";
 import fsSync from "node:fs";
+import fsPromises from "node:fs/promises";
 import path from "node:path";
 
 // Error import
 import { WorkerError } from "@shared/errors/WorkerError";
 
 // Util import
-import { sleep } from "@shared/utils/sleep.util";
-import { logger } from "@shared/utils/logger";
 import { getStorageBasePath } from "@shared/utils/getStorageBasePath.util";
+import { logger } from "@shared/utils/logger";
+import { sleep } from "@shared/utils/sleep.util";
 
-// Config import
+// Constant import
 import { defaultConfiguration } from "../constants/defaultConfiguration";
-
-// Enum import
-import { CONFIGURATION } from "../types/configuration.enum";
 
 // Type import
 import { ConfigurationData } from "../types/configurationData.type";
+
+// Enum import
+import { CONFIGURATION } from "../types/configuration.enum";
 
 export class ConfigurationManagerService<
   T extends CONFIGURATION | string,

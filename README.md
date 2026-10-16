@@ -1,39 +1,37 @@
 <p align="center">
-  <a href="" rel="noopener">
-    <img width="200px" height="200px" src="./docs/assets/logo.png" alt="Project logo" style="fill:#000000">
-  </a>
+  <img width="200px" height="200px" src="./docs/assets/logo.png" alt="Logo da AutoDroid" style="fill:#000000">
 </p>
 
 <h3 align="center">AutoDroid Worker</h3>
 
 <div align="center">
 
-[![Status](https://img.shields.io/badge/status-active-success.svg)]()
+![Status](https://img.shields.io/badge/status-active-success.svg)
 
 </div>
 
 ---
 
-## 📝 Índice <a name="summary"></a>
+## Sumário <a name="summary"></a>
 
-- [📖 Sobre](#about)
-- [✨ Visão Geral do Projeto](#overview)
-- [⛏️ Tecnologias Utilizadas](#built_using)
-- [📡 Ambiente do Servidor](#server_environment)
-- [🚩 Antes de começar](#before_start)
-- [🏁 Primeiros Passos](#getting_started)
-- [🚀 Deployment](#deployment)
-- [🔃 Atualizando](#updating)
-- [🔧 Solução de Problemas](#troubleshooting)
-- [📊 Telemetria](#telemetry)
-- [🤝🏻 Contribuições](./docs/CONTRIBUTING.md)
-- [💾 Changelog](./CHANGELOG.md)
+- [Sobre](#about)
+- [Visão geral do projeto](#overview)
+- [Tecnologias utilizadas](#built_using)
+- [Ambiente do servidor](#server_environment)
+- [Antes de começar](#before_start)
+- [Primeiros passos](#getting_started)
+- [Implantação](#deployment)
+- [Atualização](#updating)
+- [Solução de problemas](#troubleshooting)
+- [Telemetria](#telemetry)
+- [Contribuições](./docs/CONTRIBUTING.md)
+- [Changelog](./CHANGELOG.md)
 
-## 📖 Sobre <a name = "about"></a>
+## Sobre <a name="about"></a>
 
 Este repositório contém o código do Worker da aplicação AutoDroid, que é responsável por processar os jobs em background.
 
-Acesse o repositório da aplicação [AutoDroid API](https://github.com/MalwareDataLab/autodroid-api) para maiores informações sobre o projeto e as configurações necessárias antes deste Worker ser executado.
+Acesse o repositório da aplicação [AutoDroid API](https://github.com/MalwareDataLab/AutoDroid) para maiores informações sobre o projeto e as configurações necessárias antes deste Worker ser executado.
 
 ### Motivação
 
@@ -43,23 +41,23 @@ A [Prova de Conceito](https://sol.sbc.org.br/index.php/errc/article/view/26020) 
 
 ### Desafios
 
-Todavia, diante da necessidade de escalabilidade e facilidade de uso, foi necessário remover a estratégia DinD e adotar uma abordagem que proporcionasse computação distribuída sem obstruir o tráfego da [aplicação principal (AutoDroid API)](https://github.com/MalwareDataLab/autodroid-api).
+Todavia, diante da necessidade de escalabilidade e facilidade de uso, foi necessário remover a estratégia DinD e adotar uma abordagem que proporcionasse computação distribuída sem obstruir o tráfego da [aplicação principal (AutoDroid API)](https://github.com/MalwareDataLab/AutoDroid).
 
 Disponibilizar tal laboratório como um serviço em nível nacional pode ser muito desafiador, pois a execução de aplicações como a DroidAugmentor e MalSynGen podem utilizar grandes recursos computacionais e de armazenamento, além de poder levar muitos dias ou semanas para um processamento ser concluído.
 
 ### Solução
 
-Inspirado na ideia do [Github Actions](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/about-self-hosted-runners) onde os usuários podem dedicar máquinas para executar pipelines despachadas pelo GitHub, foi desenvolvido o Worker, que é uma aplicação separada da API, responsável por processar os jobs em background.
+Inspirado na ideia do [GitHub Actions](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/about-self-hosted-runners) onde os usuários podem dedicar máquinas para executar pipelines despachadas pelo GitHub, foi desenvolvido o Worker, que é uma aplicação separada da API, responsável por processar os jobs em background.
 
-Essa aplicação foi desenvolvida especialmente buscando não expor a infraestrutura do servidor principal, mas se comunicando com a API Gateway através de Websocket/REST, permitindo a instância de múltiplos workers, em máquinas distintas, sem dependência de VPN's ou concessões de acesso, tornando o processo distribuído e seguro.
+Essa aplicação foi desenvolvida especialmente buscando não expor a infraestrutura do servidor principal, mas se comunicando com a API Gateway através de Websocket/REST, permitindo a instância de múltiplos workers, em máquinas distintas, sem dependência de VPNs ou concessões de acesso, tornando o processo distribuído e seguro.
 
-## ✨ Visão Geral do Projeto <a name="overview"></a>
+## Visão geral do projeto <a name="overview"></a>
 
 O Worker está inserido no contexto do projeto AutoDroid, que é uma aplicação que visa oferecer a ferramenta DroidAugmentor/MalSynGen como um serviço.
 
 <img src="./docs/assets/system-context.jpg" alt="Overview" style="fill:#000000">
 
-## ⛏️ Tecnologias Utilizadas <a name = "built_using"></a>
+## Tecnologias utilizadas <a name="built_using"></a>
 
 - [TypeScript](https://www.typescriptlang.org/) - Linguagem de programação
 - [Node.js](https://nodejs.org/) - Ambiente de execução
@@ -70,46 +68,47 @@ O Worker está inserido no contexto do projeto AutoDroid, que é uma aplicação
 
 ### Geral
 
-É importante mencionar as demais ferramentas que serão utilizadas nas duas partes do projeto:
+Ferramentas de desenvolvimento:
 
 - [Git](https://git-scm.com/) - Controle de versão
 - [Husky](https://typicode.github.io/husky/#/) - Hooks do Git
 - [Lint Staged](https://github.com/okonet/lint-staged) - Ferramenta para verificar arquivos commitados
 - [Commitizen](https://github.com/commitizen/cz-cli) - Auxiliar para mensagens de commit do Git
 - [Commitlint](https://commitlint.js.org/) - Verificador de mensagens de commit do Git
-- [Standard Version](https://github.com/conventional-changelog/standard-version) - Gerador de changelog
+- [release-please](https://github.com/googleapis/release-please) - Versões e changelog a partir dos commits
 - [Eslint](https://eslint.org/) - Framework de verificação de código
 - [Prettier](https://prettier.io/) - Formatador de código
 - [Semver](https://semver.org/) - Versionamento semântico
 
-## 📡 Ambiente do Servidor <a name = "server_environment"></a>
+## Ambiente do servidor <a name="server_environment"></a>
 
 - Sistema operacional Linux (por exemplo, Ubuntu, Debian e outros...) (MacOS/Windows é experimental)
 - Virtualização habilitada no BIOS
 - Mínimo de 4GB de RAM
-- Mínimo de 10GB de espaço livre em disco, dependendo dos "processadores" disponíveis (para arquivos, resultados de processamento, banco de dados e imagens Docker)
+- Mínimo de 10GB de espaço livre em disco, dependendo dos "processadores" disponíveis (para arquivos, resultados de processamento e imagens Docker)
 - [Git](https://git-scm.com/downloads) instalado
 - [Docker](https://docs.docker.com/get-docker/) instalado
 
-## 🚩 Antes de começar <a name = "before_start"></a>
+## Antes de começar <a name="before_start"></a>
 
-Crie a instância do (AutoDroid API Gateway) conforme especificado no repositório principal [AutoDroid API](https://github.com/MalwareDataLab/autodroid-api). Para facilitar a configuração inicial, o repositório da API contém um [script de demonstração completo](https://github.com/MalwareDataLab/autodroid-api#demo) que automatiza todo o processo de configuração, incluindo a instalação e configuração do backend e do worker em um único ambiente. Este script é ideal para testes e desenvolvimento local.
+Crie a instância do (AutoDroid API Gateway) conforme especificado no repositório principal [AutoDroid API](https://github.com/MalwareDataLab/AutoDroid). Para facilitar a configuração inicial, o repositório da API contém um [script de demonstração completo](https://github.com/MalwareDataLab/AutoDroid#uso) que automatiza todo o processo de configuração, incluindo a instalação e configuração do backend e do worker em um único ambiente. Este script é ideal para testes e desenvolvimento local.
 
-Utilizando um usuário autenticado como administrador, crie um `WorkerRegistrationToken` na API Gateway, que será utilizado para autenticar o Worker com a API. Utilize o Postman, SDK ou linha de comando para executar esta ação.
+Utilizando um usuário autenticado como administrador, crie um `WorkerRegistrationToken` na API Gateway, que será utilizado para autenticar o Worker com a API. Utilize o Postman, o SDK ou a linha de comando para executar esta ação.
 
-Exemplo:
+Exemplo com `curl`:
+
 ```bash
 curl --location 'http://localhost:3333/admin/worker/registration-token' \
 --header 'Content-Type: application/json' \
---header 'Authorization: < TOKEN >' \
+--header 'Authorization: Bearer <TOKEN>' \
 --data '{
     "is_unlimited_usage": true
 }'
 ```
 
-Obtenha o token através do valor `token` retornado pela API.
+Pela linha de comando, o mesmo resultado sai de `npx autodroid login` seguido de `npx autodroid admin worker-token create --is-unlimited-usage`. Obtenha o token pelo valor `token` retornado.
 
-## 🏁 Primeiros Passos <a name = "getting_started"></a>
+## Primeiros passos <a name="getting_started"></a>
 
 Estas instruções irão ajudá-lo a obter uma cópia deste projeto e executá-lo em sua máquina local para fins de desenvolvimento e teste. Consulte [deployment](#deployment) para obter informações sobre como implantar o projeto em ambiente produtivo.
 
@@ -137,7 +136,7 @@ Atualize o repositório sempre, utilizando:
 git pull
 ```
 
-Introduza a variável de ambiente `REGISTRATION_TOKEN` e um nome identificador `NAME` no arquivo `.docker-compose.dev.yml` na raiz do projeto, com o valor obtido em [antes de começar](#before_start).
+Introduza a variável de ambiente `REGISTRATION_TOKEN` e um nome identificador `NAME` no arquivo `docker-compose.dev.yml` na raiz do projeto, com o valor obtido em [antes de começar](#before_start).
 
 Inicie o projeto:
 
@@ -147,13 +146,13 @@ docker compose -f docker-compose.dev.yml up
 
 Para parar a aplicação, pressione ```Ctrl + C``` no terminal ou execute ```docker compose -f docker-compose.dev.yml down``` na raiz deste repositório, caso esteja executando a aplicação em modo destacado.
 
-Uma pasta `./docs/runtime` será criada na raiz deste repositório para armazenar os arquivos temporários da aplicação. Pode ser necessário permissões de superusuário para acessar, modificar ou excluir esta pasta.
+Uma pasta `./.runtime` será criada na raiz deste repositório para armazenar os arquivos temporários da aplicação. Pode ser necessário permissões de superusuário para acessar, modificar ou excluir esta pasta.
 
-Realize a utilização da aplicação conforme em [utilização](https://github.com/MalwareDataLab/autodroid-api#usage).
+Realize a utilização da aplicação conforme em [uso](https://github.com/MalwareDataLab/AutoDroid#uso).
 
-### Instância Manual <a name="manual_setup"></a>
+### Instância manual <a name="manual_setup"></a>
 
-Instale as dependências do projeto:
+Use Node.js 20 (a versão exata está em `.nvmrc`) e instale as dependências do projeto:
 
 ```bash
 yarn install
@@ -162,12 +161,16 @@ yarn install
 Execute a instância de desenvolvimento utilizando:
 
 ```bash
-yarn dev -e development -u http://localhost:3333 -t <REGISTRATION_TOKEN> -n <NAME>
+yarn dev -u http://localhost:3333 -t <REGISTRATION_TOKEN> -n <NAME>
 ```
 
 O Worker estará disponível para receber trabalhos.
 
-## 🚀 Deployment <a name = "deployment"></a>
+### Testes
+
+`yarn test` roda as camadas unitária, de integração e e2e, com meta de 100% de cobertura. As duas últimas precisam do Docker rodando: a de integração baixa a imagem `alpine:latest`, e a e2e constrói a imagem de teste em `test/fixtures/e2e-tool`. Cada camada roda sozinha com `yarn test:unit`, `yarn test:integration` e `yarn test:e2e`. `yarn lint` checa o lint e os tipos. O que cada camada simula está no [AGENTS.md](AGENTS.md).
+
+## Implantação <a name="deployment"></a>
 
 Esta aplicação está pronta para implantação com Docker e docker compose.
 
@@ -199,13 +202,9 @@ A aplicação estará disponível até que seja parada através do comando:
 docker compose -f docker-compose.prod.yml down
 ```
 
-A aplicação utiliza protocolo HTTPS e WS para a comunicação.
+O worker só abre conexões de saída para a API, por HTTPS e WebSocket, e não precisa de portas de entrada. Verifique se a sua rede local e o seu provedor permitem essas conexões.
 
-Configure sua rede local e as portas do firewall para permitir o acesso à aplicação.
-
-Verifique as restrições da sua rede local e ISP.
-
-## 🔃 Atualizando <a name = "updating"></a>
+## Atualização <a name="updating"></a>
 
 O docker compose está instrumentado com a ferramenta [watchtower](https://containrrr.dev/watchtower/) para atualizações automáticas.
 
@@ -217,9 +216,9 @@ docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
 ```
 
-## 🔧 Solução de Problemas <a name = "troubleshooting"></a>
+## Solução de problemas <a name="troubleshooting"></a>
 
-O Docker é incrível, mas às vezes pode ser um pouco complicado. Alguns erros podem ocorrer durante a execução da aplicação, e alguns deles podem estar relacionados ao Docker.
+Alguns erros durante a execução da aplicação podem estar relacionados ao Docker.
 
 ### Erros antes da inicialização
 
@@ -236,14 +235,14 @@ Se você estiver enfrentando alguns erros relacionados ao Docker, você pode ten
 
 ```bash
 # Pare todos os containers
-docker compose down
+docker compose -f docker-compose.prod.yml down
 docker stop $(docker ps -q)
 
 # Remova todos os arquivos da pasta runtime
-sudo rm -rf ./docs/.runtime
+sudo rm -rf ./.runtime
 
 # Remova todas as imagens relacionadas a este projeto
-docker rmi $(docker images -q -f "reference=autodroid_*")
+docker rmi malwaredatalab/autodroid-worker:latest
 
 # Reinicie o serviço de rede
 sudo systemctl restart NetworkManager.service
@@ -262,12 +261,12 @@ docker rmi hello-world
 docker run --rm hello-world:latest
 
 # Tente construir a aplicação manualmente, em caso de erro, envie a mensagem de erro para o mantenedor do projeto
-docker compose build --no-cache
+docker compose -f docker-compose.prod.yml build --no-cache
 ```
 
 Persistindo o erro, entre em contato com o mantenedor do projeto.
 
-## 📊 Telemetria <a name = "telemetry"></a>
+## Telemetria <a name="telemetry"></a>
 
 O AutoDroid Worker pode ser monitorado através de uma solução de telemetria externa, composta por dois componentes:
 
@@ -286,7 +285,7 @@ Para utilizar a solução de telemetria:
 3. Configure o cliente para se conectar ao servidor de telemetria
 4. Os resultados dos experimentos serão armazenados em arquivos CSV e gráficos, que podem ser utilizados para análise e visualização dos dados coletados
 
-## 📖 Referências <a name="bibliography"></a>
+## Referências <a name="bibliography"></a>
 
 LAVIOLA, Luiz Felipe; PAIM, Kayuã Oleques; KREUTZ, Diego; MANSILHA, Rodrigo Brandão. AutoDroid: disponibilizando a ferramenta DroidAugmentor como serviço. In: ESCOLA REGIONAL DE REDES DE COMPUTADORES (ERRC), 20. , 2023, Porto Alegre/RS. Anais [...]. Porto Alegre: Sociedade Brasileira de Computação, 2023 . p. 145-150. DOI: https://doi.org/10.5753/errc.2023.929.
 

@@ -1,6 +1,6 @@
 import { createLogger, format, transports } from "winston";
 
-// Config import
+// Configuration import
 import { getEnvConfig } from "@config/env";
 
 const customFormat = format.printf(({ timestamp, level, message }) => {

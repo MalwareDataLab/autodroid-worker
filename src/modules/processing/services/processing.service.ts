@@ -1,47 +1,47 @@
-import fsPromises from "node:fs/promises";
-import fsSync from "node:fs";
 import crypto from "node:crypto";
-import path from "node:path";
+import fsSync from "node:fs";
+import fsPromises from "node:fs/promises";
 import os from "node:os";
-import Docker from "dockerode";
-import { rimraf } from "rimraf";
+import path from "node:path";
 import archiver from "archiver";
 import axios from "axios";
-import semver from "semver";
+import Docker from "dockerode";
 import { glob } from "glob";
+import { rimraf } from "rimraf";
+import semver from "semver";
+
+// Configuration import
+import { getEnvConfig } from "@config/env";
 
 // Error import
 import { WorkerError } from "@shared/errors/WorkerError";
 
-// Config import
-import { getEnvConfig } from "@config/env";
-
 // Util import
+import { DateHelpers } from "@shared/utils/dateHelper.util";
+import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
 import {
   getStorageBasePath,
   getStorageBaseFolder,
 } from "@shared/utils/getStorageBasePath.util";
-import { logger } from "@shared/utils/logger";
-import { sleep } from "@shared/utils/sleep.util";
-import { DateHelpers } from "@shared/utils/dateHelper.util";
-import { retryExecution } from "@shared/utils/retryExecution.util";
-import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
 import { getSystemDynamicInfo } from "@shared/utils/getSystemDynamicInfo.util";
 import { getSystemEnvironment } from "@shared/utils/getSystemEnvironment.util";
+import { logger } from "@shared/utils/logger";
 import { promisifyWriteStream } from "@shared/utils/promisifyWriteStream.util";
-
-// Service import
-import { ConfigurationManagerService } from "@modules/configuration/services/configurationManager.service";
+import { retryExecution } from "@shared/utils/retryExecution.util";
+import { sleep } from "@shared/utils/sleep.util";
 
 // Type import
-import { AppContext } from "@shared/types/appContext.type";
 import { WORKER_STATUS } from "@shared/infrastructure/websocket/socket.types";
+import { AppContext } from "@shared/types/appContext.type";
 import {
   IProcessing,
   OutputFileKind,
   IProcessingFileData,
   PROCESSING_STATUS,
 } from "../types/processing.types";
+
+// Service import
+import { ConfigurationManagerService } from "@modules/configuration/services/configurationManager.service";
 
 const retry = retryExecution();
 
@@ -235,7 +235,7 @@ class ProcessingService {
           stream,
           (progressError: Error | null, _: any) => {
             if (progressError) {
-              reject(err);
+              reject(progressError);
               return;
             }
 
@@ -788,7 +788,7 @@ class ProcessingService {
       const archive = archiver("zip", { zlib: { level: 9 } });
       const hash = crypto.createHash("md5");
 
-      output.on("data", chunk => {
+      archive.on("data", chunk => {
         hash.update(chunk);
       });
 

@@ -1,30 +1,30 @@
 import { randomUUID, createHash } from "node:crypto";
-import { isHash, isJWT, isUUID } from "validator";
 import axios, { Axios } from "axios";
+import { isHash, isJWT, isUUID } from "validator";
 
-// Config import
+// Configuration import
 import { getApiConfig } from "@config/api";
 import { getEnvConfig } from "@config/env";
 
 // Error import
 import { WorkerError } from "@shared/errors/WorkerError";
 
+// Util import
+import { DateHelpers } from "@shared/utils/dateHelper.util";
+import { executeAction } from "@shared/utils/executeAction.util";
+import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
+import { getSystemStaticInfo } from "@shared/utils/getSystemStaticInfo.util";
+import { logger } from "@shared/utils/logger";
+import { retryExecution } from "@shared/utils/retryExecution.util";
+
+// Type import
+import type { AppContext } from "@shared/types/appContext.type";
+
 // Enum import
 import { CONFIGURATION } from "@modules/configuration/types/configuration.enum";
 
 // Service import
 import { ConfigurationManagerService } from "@modules/configuration/services/configurationManager.service";
-
-// Util import
-import { logger } from "@shared/utils/logger";
-import { DateHelpers } from "@shared/utils/dateHelper.util";
-import { executeAction } from "@shared/utils/executeAction.util";
-import { retryExecution } from "@shared/utils/retryExecution.util";
-import { getErrorMessage } from "@shared/utils/getErrorMessage.util";
-import { getSystemStaticInfo } from "@shared/utils/getSystemStaticInfo.util";
-
-// Type import
-import type { AppContext } from "@shared/types/appContext.type";
 
 const retry = retryExecution();
 
