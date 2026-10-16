@@ -4,7 +4,7 @@ Rules for every change to this repository, by people or agents. Setup and config
 
 ## What this repository is
 
-The AutoDroid worker: a Node 20 agent that registers with the API, receives processings over a WebSocket (`worker:work`) and runs each one in a Docker container, then uploads the result and metrics files. TypeScript, built with tsup. It talks to the API over REST with `axios` and over the WebSocket; the server is `autodroid-api-gateway`.
+The AutoDroid worker: a Node 20 agent that registers with the API, receives processings over a WebSocket (`worker:work`) and runs each one in a Docker container, then uploads the result and metrics files. TypeScript, built with tsup. It talks to the API over REST with `axios` and over the WebSocket; the server is `autodroid-api`.
 
 ## Commands
 
@@ -21,7 +21,7 @@ The AutoDroid worker: a Node 20 agent that registers with the API, receives proc
 
 - `src/modules/<module>/` holds the domain (`authentication`, `configuration`, `processing`); `src/shared/` holds configuration, errors, utils and the `infrastructure` clients (API, WebSocket, worker, Sentry). A service is a class with its own state; `AuthenticationService` exposes an `initialization` promise.
 - The worker's persisted state (the `AUTHENTICATION`, `JOB` and `COMMON` configurations) is read and written only through `ConfigurationManagerService`.
-- The API contract is REST routes (`/register`, `/refresh-token`, `/access-token`, `/worker/processing/:id/...`) and the WebSocket events (`worker:work`, `worker:get-status`, `worker:processing-acquired`, `worker:status`). A change to any of them needs the matching change in `autodroid-api-gateway`.
+- The API contract is REST routes (`/register`, `/refresh-token`, `/access-token`, `/worker/processing/:id/...`) and the WebSocket events (`worker:work`, `worker:get-status`, `worker:processing-acquired`, `worker:status`). A change to any of them needs the matching change in `autodroid-api`.
 - Processing runs only inside Docker containers, and a failure is reported to the API at `/worker/processing/:id/failure`.
 - Secrets (tokens, registration token, signature) are never logged.
 
