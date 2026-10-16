@@ -2,7 +2,7 @@ import { EventEmitter } from "node:events";
 import { WriteStream } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-// Test target import
+// Target import
 import { promisifyWriteStream } from "./promisifyWriteStream.util";
 
 describe("Utils: promisifyWriteStream", () => {

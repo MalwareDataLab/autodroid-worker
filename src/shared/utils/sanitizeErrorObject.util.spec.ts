@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 // Util import
 import { sanitizeAxiosError } from "./sanitizeAxiosError.util";
 
-// Test target import
+// Target import
 import { sanitizeErrorObject } from "./sanitizeErrorObject.util";
 
 vi.mock("./sanitizeAxiosError.util", () => ({ sanitizeAxiosError: vi.fn() }));

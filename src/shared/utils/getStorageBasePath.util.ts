@@ -1,11 +1,11 @@
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
+
+// Configuration import
+import { getEnvConfig } from "@config/env";
 
 // Error import
 import { WorkerError } from "@shared/errors/WorkerError";
-
-// Config import
-import { getEnvConfig } from "@config/env";
 
 // Util import
 import { getSystemEnvironment } from "./getSystemEnvironment.util";

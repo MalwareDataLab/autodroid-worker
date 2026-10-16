@@ -1,7 +1,7 @@
 import si from "systeminformation";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
-// Test target import
+// Target import
 import { getSystemStaticInfo } from "./getSystemStaticInfo.util";
 
 vi.mock("systeminformation", () => ({ default: { getStaticData: vi.fn() } }));

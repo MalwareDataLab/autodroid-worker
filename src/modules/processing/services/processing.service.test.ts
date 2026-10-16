@@ -1,16 +1,16 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import Docker from "dockerode";
 import { createHash, randomUUID } from "node:crypto";
-import fs from "node:fs/promises";
 import fsSync from "node:fs";
+import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import Docker from "dockerode";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+// Configuration import
+import { INTEGRATION_IDLE_IMAGE as IDLE_IMAGE } from "@/test/config/integration/globalSetup";
 
 // Type import
 import { AppContext } from "@shared/types/appContext.type";
-
-// Test config import
-import { INTEGRATION_IDLE_IMAGE as IDLE_IMAGE } from "@/test/config/integration/globalSetup";
 
 // Target import
 import { ProcessingService } from "./processing.service";
@@ -132,8 +132,9 @@ describe("Integration: ProcessingService against docker", () => {
     expect(result.size).toBeGreaterThan(0);
     expect(fsSync.existsSync(zipDestinationFilePath)).toBe(true);
     expect(result.md5_hash).toMatch(/^[a-f0-9]{32}$/);
-    expect(createHash("md5").update("probe").digest("hex")).not.toBe(
-      result.md5_hash,
-    );
+    const realFileMd5 = createHash("md5")
+      .update(fsSync.readFileSync(zipDestinationFilePath))
+      .digest("hex");
+    expect(result.md5_hash).toBe(realFileMd5);
   });
 });

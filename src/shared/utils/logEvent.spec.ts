@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Config import
+// Configuration import
 import { getEnvConfig } from "@config/env";
 
 // Infrastructure import
 import { Sentry } from "@shared/infrastructure/sentry";
 
-// Test target import
+// Target import
 import { logEvent } from "./logEvent";
 
 vi.mock("@config/env", () => ({

@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 
-// Config import
+// Configuration import
 import { getApiConfig, IApiConfig } from "@config/api";
 
 // Util import

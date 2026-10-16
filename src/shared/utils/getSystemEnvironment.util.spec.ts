@@ -2,10 +2,10 @@ import fsSync from "node:fs";
 import os from "node:os";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
-// Config import
+// Configuration import
 import { getEnvConfig } from "@config/env";
 
-// Test target import
+// Target import
 import { getSystemEnvironment } from "./getSystemEnvironment.util";
 
 vi.mock("@config/env", () => ({ getEnvConfig: vi.fn(() => ({})) }));

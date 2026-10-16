@@ -1,7 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
-
-// Test target import
 import "./logger";
+
+import { describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({ printfCallback: undefined as unknown }));
 

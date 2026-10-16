@@ -1,4 +1,7 @@
+// Configuration import
 import { getEnvConfig } from "@config/env";
+
+// Infrastructure import
 import { Sentry } from "@shared/infrastructure/sentry";
 
 const logEvent = (event: string, data?: Record<string, any>) => {

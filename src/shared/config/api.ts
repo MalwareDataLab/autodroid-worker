@@ -1,3 +1,4 @@
+// Configuration import
 import { getEnvConfig } from "./env";
 
 interface IApiConfig {

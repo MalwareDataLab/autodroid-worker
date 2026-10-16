@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+// Data import
 import APP_INFO from "@/package.json";
 
-// Test target import
+// Target import
 import { getEnvConfig } from "./env";
 
 const setEnv = (key: string, value: string) =>

@@ -1,7 +1,7 @@
 import si from "systeminformation";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
-// Test target import
+// Target import
 import { getSystemDynamicInfo } from "./getSystemDynamicInfo.util";
 
 vi.mock("systeminformation", () => ({ default: { getDynamicData: vi.fn() } }));

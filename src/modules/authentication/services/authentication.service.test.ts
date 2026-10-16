@@ -4,11 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // Util import
 import { getStorageBasePath } from "@shared/utils/getStorageBasePath.util";
 
-// Enum import
-import { CONFIGURATION } from "@modules/configuration/types/configuration.enum";
-
 // Type import
 import type { AppContext } from "@shared/types/appContext.type";
+
+// Enum import
+import { CONFIGURATION } from "@modules/configuration/types/configuration.enum";
 
 // Target import
 import { AuthenticationService } from "./authentication.service";

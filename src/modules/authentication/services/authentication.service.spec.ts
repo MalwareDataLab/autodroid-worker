@@ -1,17 +1,17 @@
-import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
-import { isHash, isJWT, isUUID } from "validator";
 import axios from "axios";
+import { isHash, isJWT, isUUID } from "validator";
+import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
 // Error import
 import { WorkerError } from "@shared/errors/WorkerError";
 
 // Util import
-import { logger } from "@shared/utils/logger";
 import { DateHelpers } from "@shared/utils/dateHelper.util";
 import { executeAction } from "@shared/utils/executeAction.util";
 import { getSystemStaticInfo } from "@shared/utils/getSystemStaticInfo.util";
+import { logger } from "@shared/utils/logger";
 
-// Test target import
+// Target import
 import { AuthenticationService } from "./authentication.service";
 
 const mocks = vi.hoisted(() => ({

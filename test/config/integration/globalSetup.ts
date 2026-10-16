@@ -1,3 +1,4 @@
+// Configuration import
 import { ensureDockerImage } from "../ensureDockerImage";
 
 // `processing.service.test.ts` creates an idle container from this image.

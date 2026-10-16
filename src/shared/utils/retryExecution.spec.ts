@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-// Target import
+// Util import
 import { retryExecution } from "./retryExecution.util";
 
 const options = {

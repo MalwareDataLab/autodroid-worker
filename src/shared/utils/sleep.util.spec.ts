@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// Test target import
+// Target import
 import { sleep } from "./sleep.util";
 
 describe("Utils: sleep", () => {

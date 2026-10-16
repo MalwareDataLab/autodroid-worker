@@ -1,13 +1,13 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 
 // Util import
-import { logger } from "@shared/utils/logger";
 import { executeAction } from "@shared/utils/executeAction.util";
+import { logger } from "@shared/utils/logger";
 
 // Type import
 import { AppContext } from "@shared/types/appContext.type";
 
-// Test target import
+// Target import
 import { WebSocketApp } from ".";
 
 const mocks = vi.hoisted(() => {

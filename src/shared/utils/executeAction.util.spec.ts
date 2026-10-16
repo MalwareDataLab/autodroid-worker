@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
-// Config import
+// Configuration import
 import { getEnvConfig } from "@config/env";
 
 // Util import
-import { sleep } from "./sleep.util";
 import { logger } from "./logger";
+import { sleep } from "./sleep.util";
 
-// Test target import
+// Target import
 import { executeAction } from "./executeAction.util";
 
 vi.mock("@config/env", () => ({ getEnvConfig: vi.fn() }));

@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 // Error import
 import { WorkerError } from "@shared/errors/WorkerError";
 
-// Test target import
+// Target import
 import { getErrorMessage } from "./getErrorMessage.util";
 
 describe("Utils: getErrorMessage", () => {

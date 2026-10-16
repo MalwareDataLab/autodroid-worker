@@ -1,7 +1,7 @@
 import axios from "axios";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
-// Test target import
+// Target import
 import { sanitizeAxiosError } from "./sanitizeAxiosError.util";
 
 vi.mock("axios", () => ({ default: { isAxiosError: vi.fn() } }));

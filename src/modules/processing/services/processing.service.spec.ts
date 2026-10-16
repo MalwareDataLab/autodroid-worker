@@ -10,9 +10,11 @@ import {
 
 // Error import
 import { WorkerError } from "@shared/errors/WorkerError";
+
+// Type import
 import { AppContext } from "@shared/types/appContext.type";
 
-// Test target import
+// Target import
 import { ProcessingService } from "./processing.service";
 
 const makeEmitter = () => {

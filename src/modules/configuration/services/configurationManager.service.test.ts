@@ -5,11 +5,11 @@ import { afterEach, describe, expect, it } from "vitest";
 // Util import
 import { getStorageBasePath } from "@shared/utils/getStorageBasePath.util";
 
+// Constant import
+import { defaultConfiguration } from "../constants/defaultConfiguration";
+
 // Enum import
 import { CONFIGURATION } from "../types/configuration.enum";
-
-// Config import
-import { defaultConfiguration } from "../constants/defaultConfiguration";
 
 // Target import
 import { ConfigurationManagerService } from "./configurationManager.service";

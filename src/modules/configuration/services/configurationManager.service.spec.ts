@@ -3,16 +3,16 @@ import fsPromises from "node:fs/promises";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
 // Util import
-import { sleep } from "@shared/utils/sleep.util";
 import { logger } from "@shared/utils/logger";
+import { sleep } from "@shared/utils/sleep.util";
 
-// Config import
+// Constant import
 import { defaultConfiguration } from "../constants/defaultConfiguration";
 
 // Enum import
 import { CONFIGURATION } from "../types/configuration.enum";
 
-// Test target import
+// Target import
 import { ConfigurationManagerService } from "./configurationManager.service";
 
 vi.mock("node:fs", () => ({

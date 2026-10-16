@@ -1,12 +1,12 @@
+// Configuration import
+import { getEnvConfig } from "@config/env";
+
 // Error import
 import { WorkerError } from "@shared/errors/WorkerError";
 
-// Config import
-import { getEnvConfig } from "@config/env";
-
 // Util import
-import { sleep } from "@shared/utils/sleep.util";
 import { logger } from "@shared/utils/logger";
+import { sleep } from "@shared/utils/sleep.util";
 
 interface IParams {
   actionName?: string;

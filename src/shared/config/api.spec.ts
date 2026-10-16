@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
-// Config import
+// Configuration import
 import { getEnvConfig } from "./env";
 
-// Test target import
+// Target import
 import { getApiConfig } from "./api";
 
 vi.mock("./env", () => ({ getEnvConfig: vi.fn() }));

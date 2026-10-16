@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 // Type import
 import { WebsocketClient } from "./types";
 
-// Test target import
+// Target import
 import { WebsocketAdapter } from "./adapter";
 
 describe("Infrastructure: WebsocketAdapter", () => {

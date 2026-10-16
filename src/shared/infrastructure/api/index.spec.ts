@@ -6,7 +6,7 @@ import { logger } from "@shared/utils/logger";
 // Type import
 import { AppContext } from "@shared/types/appContext.type";
 
-// Test target import
+// Target import
 import { Api } from ".";
 
 const mocks = vi.hoisted(() => ({

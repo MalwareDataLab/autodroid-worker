@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
-// Config import
+// Configuration import
 import { getEnvConfig } from "@config/env";
 
 // Util import
@@ -9,7 +9,7 @@ import { logger } from "@shared/utils/logger";
 // Infrastructure import
 import { Sentry } from "@shared/infrastructure/sentry";
 
-// Test target import
+// Target import
 import { WorkerError } from "./WorkerError";
 
 vi.mock("@config/env", () => ({ getEnvConfig: vi.fn() }));
@@ -116,6 +116,42 @@ describe("Error: WorkerError", () => {
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
+  it("should expose the given status code", () => {
+    const error = new WorkerError({
+      key: "@test/KEY",
+      message: "boom",
+      statusCode: 502,
+    });
+
+    expect(error.statusCode).toBe(502);
+  });
+
+  it("should report to sentry for a server-error status code even without debug metadata", async () => {
+    setEnv({ isTestEnv: false });
+
+    const error = new WorkerError({
+      key: "@test/KEY",
+      message: "boom",
+      statusCode: 500,
+    });
+    await error.action;
+
+    expect(Sentry.captureException).toHaveBeenCalledWith(error);
+  });
+
+  it("should skip reporting for a client-error status code without debug metadata", async () => {
+    setEnv({ isTestEnv: false });
+
+    const error = new WorkerError({
+      key: "@test/KEY",
+      message: "boom",
+      statusCode: 400,
+    });
+    await error.action;
+
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
   it("should build the error when captureStackTrace is unavailable", async () => {
     const original = Error.captureStackTrace;
     // @ts-expect-error removing the optional helper to exercise the fallback
@@ -136,14 +172,12 @@ describe("Error: WorkerError", () => {
   });
 
   it("should identify instances with isInstance", () => {
-    const protoName = (WorkerError.prototype as unknown as { name: string })
-      .name;
-
     expect(WorkerError.isInstance(null)).toBe(false);
     expect(
       WorkerError.isInstance(new WorkerError({ key: "@k", message: "m" })),
     ).toBe(true);
-    expect(WorkerError.isInstance({ handler: protoName })).toBe(true);
+    expect(WorkerError.isInstance({ handler: "WorkerError" })).toBe(true);
+    expect(WorkerError.isInstance({ handler: "Error" })).toBe(false);
     expect(WorkerError.isInstance({ handler: "other" })).toBe(false);
   });
 });

@@ -2,7 +2,7 @@ import { EventEmitter } from "node:events";
 import fs from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Test target import
+// Target import
 import { calculateFileMD5 } from "./calculateFileMD5.util";
 
 vi.mock("node:fs", () => ({ default: { createReadStream: vi.fn() } }));

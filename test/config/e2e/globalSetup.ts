@@ -1,12 +1,14 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
+// Configuration import
+import { ensureDockerImage } from "../ensureDockerImage";
+
+// Fixture import
 import {
   E2E_TOOL_BUILD_CONTEXT,
   E2E_TOOL_IMAGE,
 } from "@/test/fixtures/e2e-tool/image";
-
-import { ensureDockerImage } from "../ensureDockerImage";
 
 const execFileAsync = promisify(execFile);
 

@@ -3,7 +3,7 @@ import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 // Util import
 import { logger } from "@shared/utils/logger";
 
-// Test target import
+// Target import
 import { Worker } from ".";
 
 const mocks = vi.hoisted(() => ({
