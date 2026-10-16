@@ -12,10 +12,6 @@ import {
 
 const execFileAsync = promisify(execFile);
 
-// e2e drives ProcessingService's real pipeline against a real Docker daemon,
-// so the fixture tool image it runs containers from must exist before any
-// test file does. `docker build` is idempotent and content-addressed, so
-// running it unconditionally on every run never risks a stale image.
 // eslint-disable-next-line import/no-default-export
 export default async function setup() {
   await ensureDockerImage("busybox:latest");

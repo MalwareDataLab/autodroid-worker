@@ -17,29 +17,19 @@ export default defineConfig({
       provider: "v8",
       reportsDirectory: "test/outputs/coverage",
       reporter: ["json", "json-summary", "text-summary", "html"],
-      // Logic-surface denominator: measure every runtime-branching file, even
-      // those no test touches yet (`all`), so 100% is machine-verifiable and
-      // regressions surface. Declarative/generated/wiring files carry no
-      // branches and are excluded below.
       all: true,
-      // Emit coverage even when tests fail — the campaign is TDD, red runs are
-      // expected, and the coverage delta is still needed to steer the next slice.
       reportOnFailure: true,
       include: ["src/**/*.ts"],
       exclude: [
-        // Test files
         "**/*.spec.ts",
         "**/*.test.ts",
         "**/*.e2e.test.ts",
-        // Declarative / type-only (no runtime branches)
         "src/@types/**",
         "**/*.enum.ts",
         "**/*.d.ts",
         "**/*.type.ts",
         "**/*.types.ts",
         "**/types.ts",
-        // Dead module: `getSentryConfig` has no importer and the DSN it returns
-        // is hardcoded again in `src/shared/infrastructure/sentry/index.ts`.
         "src/shared/config/sentry.ts",
       ],
       thresholds: {

@@ -1,11 +1,3 @@
-// Ranks logic files that are below 100% coverage from the v8 json-summary,
-// so the coverage campaign is resumable and measurable.
-//
-//   node scripts/coverage-gaps.mjs [--by-dir] [--top=N]
-//
-// Reads test/outputs/coverage/coverage-summary.json (written by `yarn test`
-// with the json-summary reporter). Exit code 1 when any gap remains.
-
 import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -54,7 +46,9 @@ console.log(
     t.branches,
   )}  statements ${pct(t.statements)}`,
 );
-console.log(`files measured: ${files.length}   files below 100%: ${gaps.length}`);
+console.log(
+  `files measured: ${files.length}   files below 100%: ${gaps.length}`,
+);
 
 if (byDir) {
   const dirs = new Map();
@@ -70,7 +64,9 @@ if (byDir) {
     .sort((a, b) => b[1].uncovered - a[1].uncovered)
     .slice(0, top)
     .forEach(([dir, a]) =>
-      console.log(`${String(a.uncovered).padStart(6)}  ${a.files} files  ${dir}`),
+      console.log(
+        `${String(a.uncovered).padStart(6)}  ${a.files} files  ${dir}`,
+      ),
     );
 } else {
   console.log("\n=== Files below 100% (uncovered units desc) ===");

@@ -153,7 +153,6 @@ describe("Integration: ConfigurationManagerService against the real filesystem",
   it("should throw a real error deleting a config file that does not exist", () => {
     const key = trackedKey(`${CONFIGURATION.COMMON}_missing_${Date.now()}`);
     const filePath = configFilePath(key);
-    // Force-create then delete out from under the service to leave a dangling path.
     fsSync.mkdirSync(path.dirname(filePath), { recursive: true });
     fsSync.writeFileSync(filePath, "{}");
     const service = new ConfigurationManagerService(key);

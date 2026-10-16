@@ -1,15 +1,18 @@
 ### Qual é a funcionalidade?
-(Descreva qual é a funcionalidade)
+(Descreva a funcionalidade)
 
 ### Qual é a solução?
-(Descreva de forma geral como a funcionalidade foi implementada)
+(Descreva em linhas gerais como ela foi implementada)
 
-### Quais áreas do site são impactadas?
-(Descreva quais partes do site são impactadas e *se* o código afetou outras áreas)
+### Quais áreas do worker são impactadas?
+(Autenticação, configuração ou processamento, e se o código afetou outras áreas)
 
 ### Como testar?
 (Descreva os pré-requisitos e os passos para testar)
 
-### Outras observações
-(Adicione qualquer informação adicional que seja útil para o desenvolvedor ou testador de QA)
+### Checklist
+- [ ] `yarn lint` e `yarn test` passam
+- [ ] Mudanças no contrato com a API têm a mudança correspondente na API
 
+### Outras observações
+(Qualquer informação útil para quem for revisar ou testar)

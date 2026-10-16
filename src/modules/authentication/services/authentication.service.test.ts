@@ -17,8 +17,6 @@ const mocks = vi.hoisted(() => ({
   apiClient: { get: vi.fn(), post: vi.fn() },
 }));
 
-// The backend API is a genuine external dependency — mocked. Everything else
-// (ConfigurationManagerService, real filesystem persistence) runs for real.
 vi.mock("axios", () => ({
   default: {
     create: vi.fn(() => mocks.apiClient),
@@ -79,9 +77,6 @@ describe("Integration: AuthenticationService against a real ConfigurationManager
       }),
     );
 
-    // ConfigurationManagerService already persisted the real default config
-    // file to disk before the missing-token check runs — real load-then-check
-    // ordering, not something a mocked config layer would reveal.
     expect(fsSync.existsSync(configFilePath)).toBe(true);
     expect(readRealConfig().registration_token).toBeNull();
   });
@@ -124,7 +119,6 @@ describe("Integration: AuthenticationService against a real ConfigurationManager
     );
     expect(config.signature).toMatch(/^[\da-f]{64}$/);
 
-    // Prove it is really on disk, not just held in memory.
     const persisted = readRealConfig();
     expect(persisted.worker_id).toBe(config.worker_id);
     expect(persisted.access_token).toBe("access-token-value");
@@ -182,7 +176,7 @@ describe("Integration: AuthenticationService against a real ConfigurationManager
     const persisted = readRealConfig();
     expect(persisted.auth_failure_reported).toBe(true);
     expect(persisted.worker_id).toBeNull();
-  }, 40000); // not a hang. // collection, which alone takes seconds on some hosts — genuinely slow, // 5 real retries at 1s apart on top of one real (unmocked) system-info
+  }, 40000);
 
   it("should refresh only the access token on a session with a fresh refresh token", async () => {
     mocks.apiClient.post.mockImplementation((url: string) => {

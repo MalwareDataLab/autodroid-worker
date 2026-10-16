@@ -1,67 +1,54 @@
-# Guia de Contribuição
+# Contribuindo
 
-- Contribuir para este projeto é bastante fácil. Este documento mostra como começar!
+Antes de começar, leia o [AGENTS.md](../AGENTS.md), com as regras de código, de imports e de testes. Use Node.js 20 (a versão exata está em `.nvmrc`) e Yarn 1.
 
-## Geral
+## Fluxo
 
-- A [Estrutura do Código](./CODEBASE_STRUCTURE.md) contém informações detalhadas sobre como os vários arquivos deste projeto estão estruturados.
-- Por favor, certifique-se de que quaisquer alterações que você fizer estejam de acordo com as [Diretrizes de Código](./CODE_GUIDELINES.md) deste repositório.
-- As seções de import, as camadas de teste e a política de comentários estão no [AGENTS.md](../AGENTS.md).
+1. Faça um fork do repositório e clone o seu fork.
+2. Crie um branch a partir do `develop`, um por correção ou funcionalidade. O nome começa com o tipo: `bugfix`, `feature`, `hotfix`, `release` ou `other`.
 
-## Começando a trabalhar
+   ```bash
+   git checkout -b bugfix/mudar-algo
+   ```
 
-- Faça um fork do repositório
-- Clone o repositório forkado
-- Crie um novo branch para o seu trabalho baseado no branch develop
-- Use um branch por correção/funcionalidade
-- Os possíveis tipos de branch são:
-  - bugfix
-  - feature
-  - hotfix
-  - release
-  - other
-- Crie uma pull request para o branch develop
+   Se der erro, busque o repositório antes:
 
-Exemplo:
+   ```bash
+   git remote update && git fetch
+   ```
 
-```bash
-git checkout -b bugfix/mudar-algo
-```
+3. Mantenha o branch atualizado:
 
-Se você receber um erro, talvez precise buscar o repositório primeiro usando
+   ```bash
+   git pull origin develop
+   ```
 
-```bash
-git remote update && git fetch
-```
+   Pode ser preciso resolver conflitos.
 
-## Atualizando o branch com o desenvolvimento
+4. Instale as dependências:
 
-É altamente recomendado puxar o código de desenvolvimento para o seu branch para se manter atualizado. Use o comando abaixo para realizar essa tarefa.
+   ```bash
+   yarn
+   ```
 
-```bash
-git pull origin development
-```
+5. Faça o commit. O husky roda `yarn lint` e o lint-staged antes de cada commit. O commitizen abre um assistente para a mensagem, no padrão Conventional Commits, e o commitlint valida o resultado. As regras estão em [Mensagens de commit](./COMMIT_MESSAGE_GUIDELINES.md).
+6. Abra o pull request para o branch `develop`.
 
-Você pode precisar resolver alguns conflitos antes de continuar com o seu código.
+Ao participar, siga o [código de conduta](./CODE_OF_CONDUCT.md).
 
-## Enviando alterações
+## Verificação local
 
-- Instale as dependências usando:
+| Comando | O que faz |
+| --- | --- |
+| `yarn lint` | ESLint e `tsc` |
+| `yarn test` | Todas as camadas de teste, com cobertura de 100% |
+| `yarn test:unit` | Só os testes unitários |
+| `yarn test:integration` | Docker real, com a imagem `alpine:latest` baixada antes |
+| `yarn test:e2e` | Pipeline completo em contêineres reais, com a imagem de teste construída antes |
+| `yarn coverage:gaps` | Arquivos que ainda estão abaixo de 100% de cobertura |
 
-  ```bash
-  yarn
-  ```
+As camadas de integração e e2e precisam do Docker rodando.
 
-- Use este comando para iniciar o commitizen e siga as instruções no console para criar uma ótima mensagem de commit para você
+## Release
 
-  ```bash
-  git commit
-  ```
-
-  AVISO: Por favor, mencione o ID do problema no seu commit.
-
-- Faça uma pull request
-- Certifique-se de enviar a PR para o branch <code>develop</code>
-
-Se você seguir estas instruções, sua PR estará preparada para o sucesso através do pipeline do projeto.
-
+O workflow `deploy.yml` roda em pushes para `main`, `staging` e `qa`. O release-please abre o PR de release a partir das mensagens de commit.
