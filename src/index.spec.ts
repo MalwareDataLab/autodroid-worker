@@ -58,7 +58,7 @@ describe("Entrypoint", () => {
     expect(readEnv("REGISTRATION_TOKEN")).toBe("env-token");
     expect(readEnv("NODE_ENV")).toBe("production");
     expect(readEnv("DEBUG")).toBe("false");
-    expect(readEnv("API_BASE_URL")).toBe("https://mdl-api.unihacker.club");
+    expect(readEnv("API_BASE_URL")).toBe("https://api-autodroid.laviola.dev");
     expect(mocks.Worker).toHaveBeenCalledWith({
       name: "env-worker",
       registration_token: "env-token",
