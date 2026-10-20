@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.6.0...v0.6.1) (2026-10-17)
+
+
+### Bug Fixes
+
+* default the worker to the new AutoDroid API host ([4e819a7](https://github.com/MalwareDataLab/autodroid-worker/commit/4e819a71cbe92caaad524e2672d5b4628986007f))
+* update host ([ab65e89](https://github.com/MalwareDataLab/autodroid-worker/commit/ab65e895ea33c86b1cff6055b89701d768e01e10))
+
 ## [0.6.0](https://github.com/MalwareDataLab/autodroid-worker/compare/v0.5.1...v0.6.0) (2026-10-16)
 
 
