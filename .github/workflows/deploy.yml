@@ -100,6 +100,8 @@ jobs:
     steps:
       - name: Checkout to branch
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Extract branch name
         id: extract-branch
@@ -157,24 +159,28 @@ jobs:
       - name: Push to develop branch
         if: always()
         continue-on-error: true
+        env:
+          BRANCH: ${{ steps.extract-branch.outputs.branch }}
+          RELEASE_FILES: '^(CHANGELOG\.md|package\.json|packages/api/package\.json|\.github/config/release-please-manifest-[a-z]+\.json)$'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin develop:develop || git checkout -b develop
-          git checkout develop
-
-          # Try merging with theirs strategy (keep changes from current branch)
-          git merge ${{ steps.extract-branch.outputs.branch }} -X theirs --no-ff --no-edit --allow-unrelated-histories || {
-            # Check if files exist before trying to checkout
-            for file in ".github/config/release-please-manifest-main.json" "CHANGELOG.md" "package.json"; do
-              if git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
-                git checkout --theirs "$file"
-                git add "$file"
-              fi
+          git fetch origin develop
+          git checkout -B develop origin/develop
+          if ! git merge "$BRANCH" --no-ff --no-edit; then
+            conflicted=$(git diff --name-only --diff-filter=U)
+            unexpected=$(printf '%s\n' "$conflicted" | grep -vE "$RELEASE_FILES" || true)
+            if [ -n "$unexpected" ]; then
+              git merge --abort
+              echo "::error::develop was not synced, merge it by hand. Conflicts outside the release files: $unexpected"
+              exit 1
+            fi
+            printf '%s\n' "$conflicted" | while read -r file; do
+              git checkout --theirs -- "$file"
+              git add -- "$file"
             done
-            git -c core.editor=true merge --continue || git commit -m "Merge ${{ steps.extract-branch.outputs.branch }} into develop"
-          }
-
+            git -c core.editor=true merge --continue
+          fi
           git push origin develop
 
   release:
